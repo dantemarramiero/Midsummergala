@@ -231,9 +231,12 @@ body.modal-open { overflow: hidden; }
   .hero-numeral { display: none; }
 }
 @media (max-width:720px) {
-  .hero { padding-bottom: 56px; }
-  .hero-title { font-size: clamp(64px, 18vw, 112px); margin-bottom: 40px; }
-  .hero-meta { flex-wrap: wrap; gap: 28px; }
+  .hero { padding-bottom: 48px; }
+  .hero-title { font-size: clamp(56px, 16vw, 100px); margin-bottom: 32px; }
+  .hero-eyebrow-row { flex-direction: column; gap: 6px; margin-bottom: 20px; }
+  .hero-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 16px; }
+  .hero-actions { flex-direction: column; gap: 10px; width: 100%; }
+  .hero-actions .btn { width: 100%; justify-content: center; }
 }
 
 /* ============================================================
@@ -286,8 +289,9 @@ body.modal-open { overflow: hidden; }
   .detail-cell:nth-child(3) { border-bottom: none; }
 }
 @media (max-width:480px) {
-  .detail-grid { grid-template-columns: 1fr; }
-  .detail-cell { border-right: none !important; }
+  .detail-grid { grid-template-columns: 1fr 1fr; }
+  .detail-cell { border-right: none !important; padding: 32px 20px; }
+  .detail-val { font-size: 19px; }
 }
 
 /* ============================================================
@@ -398,11 +402,14 @@ body.modal-open { overflow: hidden; }
   .ticket-perks { display: none; }
 }
 @media (max-width:580px) {
-  .ticket-row { grid-template-columns: 1fr; gap: 20px; }
+  .ticket-row { grid-template-columns: 1fr; gap: 16px; padding: 28px 0; }
+  .ticket-name { font-size: 28px; }
   .ticket-action { justify-content: flex-start; }
+  .ticket-action .btn { width: 100%; justify-content: center; }
   .ticket-price-col { text-align: left; }
+  .ticket-price { font-size: 32px; }
   .biglietti-header { flex-direction: column; align-items: flex-start; gap: 16px; }
-  .biglietti-note { text-align: left; }
+  .biglietti-note { text-align: left; max-width: 100%; }
 }
 
 /* ============================================================
@@ -480,8 +487,11 @@ body.modal-open { overflow: hidden; }
 }
 .form-note { font-size: 11px; color: var(--ink-faint); line-height: 1.65; margin-top: 20px; }
 
-@media (max-width:900px) { .prenota-grid { grid-template-columns: 1fr; gap: 64px; } }
-@media (max-width:580px) { .field-row { grid-template-columns: 1fr; } }
+@media (max-width:900px) { .prenota-grid { grid-template-columns: 1fr; gap: 48px; } }
+@media (max-width:580px) {
+  .field-row { grid-template-columns: 1fr; }
+  .prenota-grid { gap: 36px; }
+}
 
 /* ============================================================
    FOOTER
@@ -555,6 +565,7 @@ body.modal-open { overflow: hidden; }
    TWEAKS PANEL
 ============================================================ */
 .tweaks-panel { position: fixed; bottom: 24px; right: 24px; z-index: 150; }
+@media (max-width:720px) { .tweaks-panel { display: none; } }
 .tweaks-toggle {
   width: 44px; height: 44px; border: none; cursor: pointer;
   background: var(--istituzionale); display: flex; align-items: center; justify-content: center;
