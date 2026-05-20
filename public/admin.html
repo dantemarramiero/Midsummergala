@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Midsummer Gala</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:      #05050f;
+      --bg2:     #0b0b1a;
+      --bg3:     #111128;
+      --bg4:     #16162e;
+      --gold:    #c9a84c;
+      --gold-lt: #e8c96a;
+      --gold-dk: #8a6a1f;
+      --cream:   #f0e8d0;
+      --muted:   #8888aa;
+      --red:     #e05555;
+      --green:   #4caf84;
+      --blue:    #5580e0;
+      --radius:  10px;
+    }
+    html, body { height: 100%; }
+    body {
+      background: var(--bg);
+      color: var(--cream);
+      font-family: 'Jost', sans-serif;
+      font-weight: 300;
+      display: flex; flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* ── LOGIN ──────────────────────────────────────────────── */
+    #login-screen {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+    }
+    .login-card {
+      background: var(--bg3);
+      border: 1px solid rgba(201,168,76,.2);
+      border-radius: 20px;
+      padding: 3rem 2.5rem;
+      width: 360px; text-align: center;
+    }
+    .login-card h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.6rem; font-weight: 300;
+      color: var(--gold); margin-bottom: .3rem;
+    }
+    .login-card p { font-size: .8rem; opacity: .5; margin-bottom: 2rem; }
+    .login-card input {
+      width: 100%;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(201,168,76,.25);
+      border-radius: 8px;
+      padding: .8rem 1rem;
+      color: var(--cream);
+      font-family: 'Jost', sans-serif;
+      font-size: .9rem;
+      text-align: center; letter-spacing: .2em;
+      outline: none; margin-bottom: 1rem;
+    }
+    .login-card input:focus { border-color: var(--gold); }
+    .login-btn {
+      width: 100%;
+      background: linear-gradient(135deg, var(--gold-dk), var(--gold));
+      border: none; border-radius: 50px;
+      color: var(--bg);
+      padding: .8rem;
+      font-family: 'Jost', sans-serif;
+      font-size: .8rem; letter-spacing: .2em;
+      text-transform: uppercase; cursor: pointer;
+      transition: opacity .3s;
+    }
+    .login-btn:hover { opacity: .85; }
+    .login-error {
+      color: var(--red); font-size: .8rem;
+      margin-top: .75rem; min-height: 1.2em;
+    }
+
+    /* ── APP ────────────────────────────────────────────────── */
+    #app { display: none; flex: 1; flex-direction: column; }
+
+    /* ── HEADER ─────────────────────────────────────────────── */
+    header {
+      background: var(--bg2);
+      border-bottom: 1px solid rgba(201,168,76,.12);
+      padding: 1rem 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
+    }
+    .header-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem; letter-spacing: .2em;
+      color: var(--gold); text-transform: uppercase;
+    }
+    .header-logo span { font-size: .65rem; opacity: .5; margin-left: .75rem; letter-spacing: .1em; }
+    .header-actions { display: flex; gap: .75rem; align-items: center; }
+
+    /* ── MAIN ───────────────────────────────────────────────── */
+    main { flex: 1; padding: 2rem; max-width: 1300px; width: 100%; margin: 0 auto; }
+
+    /* ── STATS CARDS ────────────────────────────────────────── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem; margin-bottom: 2rem;
+    }
+    .stat-card {
+      background: var(--bg3);
+      border: 1px solid rgba(201,168,76,.12);
+      border-radius: var(--radius);
+      padding: 1.4rem 1.5rem;
+    }
+    .stat-label {
+      font-size: .65rem; letter-spacing: .18em;
+      text-transform: uppercase; color: var(--muted);
+      margin-bottom: .5rem;
+    }
+    .stat-value {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.5rem; font-weight: 300;
+      color: var(--gold); line-height: 1;
+    }
+    .stat-sub { font-size: .75rem; color: var(--muted); margin-top: .25rem; }
+
+    /* ── TOOLBAR ────────────────────────────────────────────── */
+    .toolbar {
+      display: flex; align-items: center;
+      gap: 1rem; margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .filter-tabs {
+      display: flex; gap: .5rem;
+      background: var(--bg3);
+      border: 1px solid rgba(201,168,76,.12);
+      border-radius: 50px; padding: .25rem;
+    }
+    .tab-btn {
+      background: transparent; border: none;
+      color: var(--muted);
+      padding: .4rem 1.2rem;
+      border-radius: 50px;
+      font-family: 'Jost', sans-serif;
+      font-size: .75rem; letter-spacing: .1em;
+      text-transform: uppercase; cursor: pointer;
+      transition: background .2s, color .2s;
+    }
+    .tab-btn.active {
+      background: var(--gold);
+      color: var(--bg);
+    }
+    .search-box {
+      flex: 1; min-width: 200px;
+      background: var(--bg3);
+      border: 1px solid rgba(201,168,76,.15);
+      border-radius: 8px;
+      padding: .55rem 1rem;
+      color: var(--cream);
+      font-family: 'Jost', sans-serif;
+      font-size: .85rem; outline: none;
+      transition: border-color .3s;
+    }
+    .search-box::placeholder { color: var(--muted); }
+    .search-box:focus { border-color: var(--gold); }
+
+    .export-btn {
+      background: rgba(201,168,76,.08);
+      border: 1px solid rgba(201,168,76,.25);
+      color: var(--gold);
+      padding: .55rem 1.2rem;
+      border-radius: 8px;
+      font-family: 'Jost', sans-serif;
+      font-size: .75rem; letter-spacing: .1em;
+      text-transform: uppercase; cursor: pointer;
+      transition: background .2s;
+      white-space: nowrap;
+    }
+    .export-btn:hover { background: rgba(201,168,76,.16); }
+
+    .refresh-btn {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,.1);
+      color: var(--muted);
+      padding: .55rem .9rem;
+      border-radius: 8px;
+      cursor: pointer; font-size: .9rem;
+      transition: color .2s, border-color .2s;
+    }
+    .refresh-btn:hover { color: var(--cream); border-color: rgba(255,255,255,.25); }
+
+    /* ── TABLE ──────────────────────────────────────────────── */
+    .table-wrap {
+      background: var(--bg3);
+      border: 1px solid rgba(201,168,76,.12);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .table-count {
+      padding: .9rem 1.5rem;
+      font-size: .75rem; color: var(--muted);
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .table-scroll { overflow-x: auto; }
+
+    table { width: 100%; border-collapse: collapse; min-width: 700px; }
+    thead th {
+      text-align: left;
+      font-size: .65rem; letter-spacing: .15em;
+      text-transform: uppercase; color: var(--muted);
+      padding: .9rem 1.2rem;
+      border-bottom: 1px solid rgba(255,255,255,.07);
+      white-space: nowrap;
+    }
+    tbody tr {
+      border-bottom: 1px solid rgba(255,255,255,.04);
+      transition: background .2s;
+    }
+    tbody tr:hover { background: rgba(201,168,76,.04); }
+    tbody tr:last-child { border: none; }
+    td {
+      padding: .85rem 1.2rem;
+      font-size: .85rem; vertical-align: middle;
+    }
+    .td-id { color: var(--muted); font-family: monospace; font-size: .8rem; }
+    .td-name { font-weight: 400; }
+    .td-email { color: var(--muted); font-size: .8rem; }
+    .td-phone { color: var(--muted); font-size: .8rem; }
+    .td-date { color: var(--muted); font-size: .78rem; white-space: nowrap; }
+
+    .badge {
+      display: inline-block; padding: .2rem .75rem;
+      border-radius: 50px; font-size: .7rem;
+      letter-spacing: .1em; text-transform: uppercase;
+    }
+    .badge-standard { background: rgba(85,128,224,.15); color: #8aaeec; border: 1px solid rgba(85,128,224,.25); }
+    .badge-navetta  { background: rgba(201,168,76,.15); color: var(--gold-lt); border: 1px solid rgba(201,168,76,.3); }
+
+    .stato-badge {
+      display: inline-block; padding: .2rem .7rem;
+      border-radius: 50px; font-size: .68rem;
+      letter-spacing: .08em; text-transform: uppercase;
+    }
+    .stato-confermata  { background: rgba(76,175,132,.15); color: var(--green); border: 1px solid rgba(76,175,132,.25); }
+    .stato-in_attesa   { background: rgba(201,168,76,.12); color: var(--gold); border: 1px solid rgba(201,168,76,.2); }
+    .stato-annullata   { background: rgba(224,85,85,.12); color: var(--red); border: 1px solid rgba(224,85,85,.2); }
+
+    .actions-cell { display: flex; gap: .4rem; align-items: center; }
+    .action-btn {
+      background: transparent; border: 1px solid rgba(255,255,255,.1);
+      color: var(--muted); padding: .3rem .6rem;
+      border-radius: 6px; font-size: .7rem; cursor: pointer;
+      transition: all .2s;
+    }
+    .action-btn:hover { color: var(--cream); border-color: rgba(255,255,255,.3); }
+    .action-btn.del:hover { color: var(--red); border-color: var(--red); }
+
+    .empty-state {
+      text-align: center; padding: 4rem 2rem; opacity: .4;
+    }
+    .empty-state p { font-size: .9rem; margin-top: .5rem; }
+
+    /* ── STATO DROPDOWN ─────────────────────────────────────── */
+    .stato-select {
+      background: transparent;
+      border: none; color: inherit;
+      font-family: 'Jost', sans-serif;
+      font-size: .68rem; cursor: pointer;
+      outline: none;
+    }
+    .stato-select option { background: var(--bg3); color: var(--cream); }
+
+    /* ── LOADING ────────────────────────────────────────────── */
+    .loading { text-align: center; padding: 3rem; opacity: .4; }
+    .spinner {
+      display: inline-block; width: 28px; height: 28px;
+      border: 2px solid rgba(201,168,76,.2);
+      border-top-color: var(--gold);
+      border-radius: 50%; animation: spin .8s linear infinite;
+      margin-bottom: 1rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── RESPONSIVE ─────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      main { padding: 1rem; }
+      header { padding: .8rem 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <h1>Midsummer Gala</h1>
+    <p>Pannello Amministratore</p>
+    <input type="password" id="pwd-input" placeholder="Password" onkeydown="if(event.key==='Enter') doLogin()" />
+    <button class="login-btn" onclick="doLogin()">Accedi</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <header>
+    <div>
+      <span class="header-logo">Midsummer Gala <span>Admin Panel</span></span>
+    </div>
+    <div class="header-actions">
+      <button class="export-btn" onclick="exportCSV()">⬇ Esporta CSV</button>
+      <button class="action-btn" onclick="doLogout()">Esci</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Stats -->
+    <div class="stats-grid" id="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Prenotazioni totali</div>
+        <div class="stat-value" id="stat-total">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Biglietti Standard</div>
+        <div class="stat-value" id="stat-standard">—</div>
+        <div class="stat-sub" id="stat-standard-t"></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Con Navetta</div>
+        <div class="stat-value" id="stat-navetta">—</div>
+        <div class="stat-sub" id="stat-navetta-t"></div>
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="filter-tabs">
+        <button class="tab-btn active" data-filter="all"     onclick="setFilter('all')">Tutti</button>
+        <button class="tab-btn" data-filter="standard"  onclick="setFilter('standard')">Standard</button>
+        <button class="tab-btn" data-filter="navetta"   onclick="setFilter('navetta')">Con Navetta</button>
+      </div>
+      <input type="text" class="search-box" id="search-box" placeholder="Cerca per nome, cognome, email…" oninput="loadReservations()" />
+      <button class="refresh-btn" onclick="loadAll()" title="Aggiorna">↺</button>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap">
+      <div class="table-count" id="table-count">Caricamento…</div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nome</th>
+              <th>Email</th>
+              <th>Telefono</th>
+              <th>Tipo</th>
+              <th>Biglietti</th>
+              <th>Stato</th>
+              <th>Note</th>
+              <th>Data</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="table-body">
+            <tr><td colspan="10"><div class="loading"><div class="spinner"></div></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+let adminKey = '';
+let currentFilter = 'all';
+
+// ── LOGIN ────────────────────────────────────────────────────────────────────
+// Support ?key=xxx in URL for direct link
+(function () {
+  const params = new URLSearchParams(location.search);
+  const k = params.get('key');
+  if (k) { adminKey = k; showApp(); }
+})();
+
+async function doLogin() {
+  const pwd = document.getElementById('pwd-input').value.trim();
+  if (!pwd) return;
+  // Verify key by calling stats endpoint
+  const res = await fetch(`/api/admin/stats?key=${encodeURIComponent(pwd)}`);
+  if (res.ok) {
+    adminKey = pwd;
+    showApp();
+  } else {
+    document.getElementById('login-error').textContent = 'Password non corretta.';
+  }
+}
+
+function showApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  document.getElementById('app').style.flexDirection = 'column';
+  loadAll();
+}
+
+function doLogout() {
+  adminKey = '';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+}
+
+// ── DATA ─────────────────────────────────────────────────────────────────────
+function loadAll() {
+  loadStats();
+  loadReservations();
+}
+
+async function loadStats() {
+  try {
+    const res  = await fetch(`/api/admin/stats?key=${encodeURIComponent(adminKey)}`);
+    const data = await res.json();
+
+    document.getElementById('stat-total').textContent = data.totals.prenotazioni ?? 0;
+
+    const types = { standard: {}, navetta: {} };
+    (data.byType || []).forEach(r => { types[r.tipo_biglietto] = r; });
+
+    ['standard', 'navetta'].forEach(t => {
+      const v = types[t];
+      document.getElementById(`stat-${t}`).textContent   = v.prenotazioni ?? 0;
+      document.getElementById(`stat-${t}-t`).textContent = v.biglietti_totali ? `${v.biglietti_totali} biglietti` : '';
+    });
+  } catch { /* ignore */ }
+}
+
+async function loadReservations() {
+  const q = document.getElementById('search-box')?.value.trim() || '';
+  let url = `/api/admin/reservations?key=${encodeURIComponent(adminKey)}&tipo=${currentFilter}`;
+  if (q) url += `&q=${encodeURIComponent(q)}`;
+
+  const tbody = document.getElementById('table-body');
+  try {
+    const res  = await fetch(url);
+    const rows = await res.json();
+    renderTable(rows);
+  } catch {
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:2rem;opacity:.4;">Errore nel caricamento.</td></tr>';
+  }
+}
+
+function renderTable(rows) {
+  const tbody = document.getElementById('table-body');
+  const count = document.getElementById('table-count');
+
+  count.textContent = `${rows.length} prenotazion${rows.length === 1 ? 'e' : 'i'}`;
+
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state">
+      <div style="font-size:2rem">🌙</div>
+      <p>Nessuna prenotazione trovata.</p>
+    </div></td></tr>`;
+    return;
+  }
+
+  const typeBadge = t => {
+    const m = { standard: 'badge-standard', navetta: 'badge-navetta' };
+    const l = { standard: 'Standard', navetta: 'Con Navetta' };
+    return `<span class="badge ${m[t] || ''}">${l[t] || t}</span>`;
+  };
+
+  const statoBadge = s => {
+    const l = { confermata: 'Confermata', in_attesa: 'In attesa', annullata: 'Annullata' };
+    return `<select class="stato-badge stato-${s} stato-select"
+      onchange="updateStato(${rows.find(r => r.stato === s)?.id ?? 0}, this)"
+      data-current="${s}">
+      <option value="confermata" ${s==='confermata'?'selected':''}>Confermata</option>
+      <option value="in_attesa"  ${s==='in_attesa' ?'selected':''}>In attesa</option>
+      <option value="annullata"  ${s==='annullata' ?'selected':''}>Annullata</option>
+    </select>`;
+  };
+
+  const fmtDate = iso => {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return d.toLocaleDateString('it-IT', { day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit' });
+  };
+
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td class="td-id">#${String(r.id).padStart(4,'0')}</td>
+      <td class="td-name">${esc(r.nome)} ${esc(r.cognome)}</td>
+      <td class="td-email">${esc(r.email)}</td>
+      <td class="td-phone">${esc(r.telefono || '—')}</td>
+      <td>${typeBadge(r.tipo_biglietto)}</td>
+      <td style="text-align:center">${r.numero_biglietti}</td>
+      <td>
+        <select class="stato-badge stato-${r.stato} stato-select"
+          onchange="updateStato(${r.id}, this)">
+          <option value="confermata" ${r.stato==='confermata'?'selected':''}>✓ Confermata</option>
+          <option value="in_attesa"  ${r.stato==='in_attesa' ?'selected':''}>⏳ In attesa</option>
+          <option value="annullata"  ${r.stato==='annullata' ?'selected':''}>✕ Annullata</option>
+        </select>
+      </td>
+      <td class="td-email" style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"
+          title="${esc(r.note || '')}">${esc(r.note || '—')}</td>
+      <td class="td-date">${fmtDate(r.created_at)}</td>
+      <td>
+        <div class="actions-cell">
+          <button class="action-btn del" onclick="deleteRow(${r.id})" title="Elimina">✕</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── FILTER ───────────────────────────────────────────────────────────────────
+function setFilter(type) {
+  currentFilter = type;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === type));
+  loadReservations();
+}
+
+// ── ACTIONS ──────────────────────────────────────────────────────────────────
+async function updateStato(id, select) {
+  const stato = select.value;
+  // Update class
+  select.className = `stato-badge stato-${stato} stato-select`;
+  await fetch(`/api/admin/reservations/${id}?key=${encodeURIComponent(adminKey)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ stato })
+  });
+}
+
+async function deleteRow(id) {
+  if (!confirm(`Eliminare la prenotazione #${String(id).padStart(4,'0')}? L'azione è irreversibile.`)) return;
+  await fetch(`/api/admin/reservations/${id}?key=${encodeURIComponent(adminKey)}`, { method: 'DELETE' });
+  loadAll();
+}
+
+function exportCSV() {
+  const url = `/api/admin/export?key=${encodeURIComponent(adminKey)}&tipo=${currentFilter}`;
+  window.open(url, '_blank');
+}
+</script>
+</body>
+</html>

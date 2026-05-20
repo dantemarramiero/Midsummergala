@@ -1,0 +1,9 @@
+node_modules/
+.env
+gala.db
+*.db
+# immagini grandi — caricare manualmente sul server
+public/images/cantina.jpg
+public/images/hero.jpg
+public/images/barrique.jpg
+public/images/vigneto.jpg

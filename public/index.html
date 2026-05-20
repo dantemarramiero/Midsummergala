@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Midsummer Gala · Marramiero</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&family=Italiana&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   DESIGN TOKENS — Marramiero brand (Midsummer Gala.html)
+============================================================ */
+:root {
+  --istituzionale:      #241a25;
+  --istituzionale-soft: #3a2c3c;
+  --base:               #f1e8d5;
+  --base-deep:          #e6dac0;
+  --accent:             #b0884a;
+  --accent-soft:        #c9a368;
+  --ink:                #241a25;
+  --ink-soft:           rgba(36,26,37,0.7);
+  --ink-faint:          rgba(36,26,37,0.42);
+  --hairline:           rgba(36,26,37,0.18);
+  --hairline-strong:    rgba(36,26,37,0.32);
+  --font-display:       "Cormorant Garamond","Didot","Bodoni 72",serif;
+  --font-display-alt:   "Italiana","Cormorant Garamond",serif;
+  --font-body:          "Inter","Avenir Next","Avenir",-apple-system,system-ui,sans-serif;
+}
+body[data-config="01"] { --base:#f6f4ef; --base-deep:#e8e4d8; --accent:#8c8a82; --accent-soft:#b2afa3; }
+body[data-config="03"] { --base:#efe1d2; --base-deep:#e0cdb6; --accent:#a8542d; --accent-soft:#c6754b; }
+body[data-config="04"] { --base:#f0dfc8; --base-deep:#e6cba8; --accent:#c75a23; --accent-soft:#df7d40; }
+
+*,*::before,*::after { box-sizing: border-box; }
+html,body { margin:0; padding:0; }
+body {
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: var(--base);
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+::selection { background: var(--accent); color: var(--base); }
+
+/* ── Layout ── */
+.wrap { max-width: 1320px; margin: 0 auto; padding: 0 48px; }
+@media (max-width:720px) { .wrap { padding: 0 24px; } }
+
+/* ── Type ── */
+.eyebrow {
+  font-family: var(--font-body);
+  font-size: 11px; letter-spacing: 0.34em;
+  text-transform: uppercase; font-weight: 500;
+  color: var(--accent);
+}
+.display {
+  font-family: var(--font-display);
+  font-weight: 400; line-height: 0.96; letter-spacing: -0.02em;
+}
+.display em { font-style: italic; font-weight: 300; color: var(--accent); }
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex; align-items: center; gap: 12px;
+  padding: 16px 28px; border-radius: 0;
+  font-family: var(--font-body); font-size: 12px;
+  letter-spacing: 0.24em; text-transform: uppercase; font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--istituzionale);
+  background: var(--istituzionale); color: var(--base);
+  transition: all 240ms cubic-bezier(0.2,0,0,1);
+  text-decoration: none;
+}
+.btn:hover { background: var(--istituzionale-soft); border-color: var(--istituzionale-soft); }
+.btn--ghost { background: transparent; color: var(--ink); }
+.btn--ghost:hover { background: var(--istituzionale); color: var(--base); }
+.btn--gold { background: var(--accent); border-color: var(--accent); color: var(--istituzionale); }
+.btn--gold:hover { background: var(--accent-soft); border-color: var(--accent-soft); }
+.btn--outline-light { background: transparent; border-color: rgba(241,232,213,0.3); color: var(--base); }
+.btn--outline-light:hover { background: rgba(241,232,213,0.08); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* arrow decoration */
+.arrow {
+  width: 14px; height: 1px; background: currentColor;
+  position: relative; flex-shrink: 0;
+  transition: width 240ms cubic-bezier(0.2,0,0,1);
+}
+.arrow::after, .arrow::before {
+  content: ""; position: absolute; right: 0; top: 50%;
+  width: 6px; height: 1px; background: currentColor;
+  transform-origin: right center;
+}
+.arrow::after  { transform: translateY(-50%) rotate(45deg); }
+.arrow::before { transform: translateY(-50%) rotate(-45deg); }
+.btn:hover .arrow { width: 24px; }
+
+/* ── Hairlines ── */
+.hairline { height: 1px; background: var(--hairline); width: 100%; }
+.hairline--light { background: rgba(241,232,213,0.15); }
+
+/* ── Sections ── */
+section { padding: 120px 0; }
+@media (max-width:720px) { section { padding: 72px 0; } }
+body.modal-open { overflow: hidden; }
+
+/* ── Fade-up ── */
+.fade-up { opacity: 0; transform: translateY(28px); transition: opacity .65s ease, transform .65s ease; }
+.fade-up.in { opacity: 1; transform: none; }
+
+/* ============================================================
+   NAV
+============================================================ */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  padding: 0 48px; height: 72px;
+  display: flex; align-items: center; justify-content: space-between;
+  transition: background 300ms, border-bottom 300ms;
+}
+.nav.scrolled {
+  background: var(--base);
+  border-bottom: 1px solid var(--hairline);
+}
+.nav-logo {
+  font-family: var(--font-display);
+  font-size: 21px; letter-spacing: 0.28em;
+  text-transform: uppercase; color: var(--ink);
+  text-decoration: none; font-weight: 400;
+}
+.nav-links {
+  display: flex; align-items: center; gap: 40px;
+  list-style: none; margin: 0; padding: 0;
+}
+.nav-links a {
+  font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+  font-weight: 500; color: var(--ink); text-decoration: none;
+  opacity: 0.6; transition: opacity 200ms;
+}
+.nav-links a:hover { opacity: 1; }
+.nav-cta { opacity: 1 !important; padding: 12px 24px; font-size: 11px; }
+
+/* light-outline on photo hero, dark once scrolled */
+.nav:not(.scrolled) .nav-cta {
+  background: transparent;
+  border-color: rgba(241,232,213,0.45);
+  color: var(--base);
+}
+.nav:not(.scrolled) .nav-cta:hover {
+  background: rgba(241,232,213,0.12);
+  border-color: rgba(241,232,213,0.70);
+  color: var(--base);
+}
+
+@media (max-width:720px) { .nav { padding: 0 24px; } .nav-links { display: none; } }
+
+/* ============================================================
+   HERO
+============================================================ */
+.hero {
+  min-height: 100vh;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding-bottom: 80px;
+  position: relative; overflow: hidden;
+  background-color: var(--istituzionale);
+  background-image: url('images/tramonto.jpg');
+  background-size: cover;
+  background-position: center 60%;
+}
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(36,26,37,0.20) 0%,
+    rgba(36,26,37,0.42) 55%,
+    rgba(36,26,37,0.82) 100%
+  );
+  pointer-events: none;
+}
+
+/* large background numeral */
+.hero-numeral {
+  position: absolute; right: -24px; bottom: -60px;
+  font-family: var(--font-display);
+  font-size: clamp(320px, 40vw, 560px);
+  font-weight: 300; line-height: 1;
+  color: var(--base); opacity: 0.10;
+  user-select: none; pointer-events: none;
+  letter-spacing: -0.05em;
+}
+
+.hero-content { position: relative; z-index: 1; }
+.hero-eyebrow-row {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 32px;
+}
+.hero-date-tag {
+  font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+  font-weight: 500; color: rgba(241,232,213,0.55);
+}
+
+.hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(88px, 13.5vw, 192px);
+  line-height: 0.92; letter-spacing: -0.025em;
+  font-weight: 400; margin: 0 0 56px; color: var(--base);
+}
+.hero-title em {
+  font-style: italic; font-weight: 300;
+  color: var(--accent-soft); display: block;
+}
+
+.hero-bottom {
+  display: flex; align-items: flex-end; justify-content: space-between; gap: 40px;
+}
+.hero-meta { display: flex; gap: 48px; }
+.hero-meta-item { display: flex; flex-direction: column; gap: 5px; }
+.hero-meta-label {
+  font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase;
+  color: rgba(241,232,213,0.50); font-weight: 500;
+}
+.hero-meta-val {
+  font-family: var(--font-display); font-size: 19px; font-weight: 400; color: var(--base);
+}
+.hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+@media (max-width:900px) {
+  .hero-bottom { flex-direction: column; align-items: flex-start; }
+  .hero-numeral { display: none; }
+}
+@media (max-width:720px) {
+  .hero { padding-bottom: 56px; }
+  .hero-title { font-size: clamp(64px, 18vw, 112px); margin-bottom: 40px; }
+  .hero-meta { flex-wrap: wrap; gap: 28px; }
+}
+
+/* ============================================================
+   COUNTDOWN STRIP
+============================================================ */
+.countdown-strip { background: var(--istituzionale); padding: 28px 0; }
+.countdown-inner {
+  display: flex; align-items: center; justify-content: center; gap: 56px;
+}
+.cd-unit { display: flex; flex-direction: column; align-items: center; gap: 7px; }
+.cd-num {
+  font-family: var(--font-display);
+  font-size: 54px; font-weight: 300; line-height: 1;
+  color: var(--base); letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.cd-lbl {
+  font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase;
+  color: rgba(241,232,213,0.38); font-weight: 500;
+}
+.cd-sep {
+  font-family: var(--font-display); font-size: 36px;
+  color: rgba(176,136,74,0.35); margin-bottom: 22px;
+}
+@media (max-width:720px) { .countdown-inner { gap: 28px; } .cd-num { font-size: 38px; } }
+
+/* ============================================================
+   DETTAGLI
+============================================================ */
+.detail-grid { display: grid; grid-template-columns: repeat(4,1fr); }
+.detail-cell {
+  padding: 48px 36px;
+  border-right: 1px solid var(--hairline);
+  display: flex; flex-direction: column; gap: 18px;
+}
+.detail-cell:first-child { padding-left: 0; }
+.detail-cell:last-child { border-right: none; padding-right: 0; }
+.detail-val {
+  font-family: var(--font-display); font-size: 23px;
+  font-weight: 400; line-height: 1.2; color: var(--ink);
+}
+.detail-sub { font-size: 13px; color: var(--ink-soft); line-height: 1.55; }
+
+@media (max-width:900px) {
+  .detail-grid { grid-template-columns: repeat(2,1fr); }
+  .detail-cell { border-bottom: 1px solid var(--hairline); }
+  .detail-cell:nth-child(2) { border-right: none; }
+  .detail-cell:nth-child(3) { border-right: 1px solid var(--hairline); }
+  .detail-cell:last-child { border-bottom: none; }
+  .detail-cell:nth-child(3) { border-bottom: none; }
+}
+@media (max-width:480px) {
+  .detail-grid { grid-template-columns: 1fr; }
+  .detail-cell { border-right: none !important; }
+}
+
+/* ============================================================
+   SERATA (dark section)
+============================================================ */
+.serata-section {
+  background-color: var(--istituzionale);
+  background-image: url('images/cantina.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  position: relative;
+}
+.serata-section::before {
+  content: ''; position: absolute; inset: 0;
+  background: rgba(36,26,37,0.88);
+  pointer-events: none;
+}
+.serata-section > .wrap { position: relative; z-index: 1; }
+.serata-section .eyebrow { color: var(--accent-soft); }
+
+.serata-header {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  margin-bottom: 72px;
+}
+.serata-title { color: var(--base); margin: 0; }
+.serata-title em { color: var(--accent-soft); }
+.serata-intro {
+  max-width: 380px; font-size: 15px; line-height: 1.7;
+  color: rgba(241,232,213,0.62);
+}
+
+.program-list { display: flex; flex-direction: column; }
+.program-item {
+  display: grid; grid-template-columns: 110px 1fr 1fr;
+  align-items: start; gap: 40px;
+  padding: 40px 0;
+  border-top: 1px solid rgba(241,232,213,0.1);
+}
+.program-item:last-child { border-bottom: 1px solid rgba(241,232,213,0.1); }
+.program-time {
+  font-family: var(--font-display); font-size: 20px; font-weight: 300;
+  color: var(--accent-soft); letter-spacing: -0.01em; padding-top: 4px;
+}
+.program-name {
+  font-family: var(--font-display); font-size: 30px; font-weight: 400;
+  line-height: 1.1; color: var(--base);
+}
+.program-desc { font-size: 14px; line-height: 1.65; color: rgba(241,232,213,0.5); }
+
+@media (max-width:900px) {
+  .serata-header { flex-direction: column; align-items: flex-start; gap: 28px; }
+  .program-item { grid-template-columns: 90px 1fr; }
+  .program-desc { display: none; }
+}
+
+/* ============================================================
+   BIGLIETTI
+============================================================ */
+.biglietti-header {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  margin-bottom: 56px;
+}
+.biglietti-note {
+  max-width: 300px; font-size: 13px; line-height: 1.6;
+  color: var(--ink-soft); text-align: right;
+}
+
+.ticket-row {
+  display: grid; grid-template-columns: 1fr 180px 180px 160px;
+  align-items: center; gap: 32px;
+  padding: 40px 0; border-top: 1px solid var(--hairline);
+  transition: background 200ms, padding 200ms, margin 200ms;
+}
+.ticket-row:last-child { border-bottom: 1px solid var(--hairline); }
+.ticket-row.selected {
+  background: var(--base-deep);
+  margin: 0 -24px; padding: 40px 24px;
+}
+
+.ticket-name {
+  font-family: var(--font-display); font-size: 34px;
+  font-weight: 400; line-height: 1.05; margin-bottom: 6px;
+}
+.ticket-desc { font-size: 13px; color: var(--ink-soft); line-height: 1.5; }
+.ticket-perks { display: flex; flex-direction: column; gap: 7px; }
+.ticket-perk {
+  font-size: 12px; color: var(--ink-soft);
+  display: flex; align-items: center; gap: 10px;
+}
+.ticket-perk::before {
+  content: ''; width: 18px; height: 1px;
+  background: var(--accent); flex-shrink: 0;
+}
+.ticket-price-col { text-align: right; }
+.ticket-price {
+  font-family: var(--font-display); font-size: 38px; font-weight: 300;
+  letter-spacing: -0.02em; color: var(--ink); line-height: 1;
+}
+.ticket-unit {
+  font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--ink-faint); margin-top: 5px;
+}
+.ticket-action { display: flex; justify-content: flex-end; }
+
+@media (max-width:960px) {
+  .ticket-row { grid-template-columns: 1fr 1fr; }
+  .ticket-perks { display: none; }
+}
+@media (max-width:580px) {
+  .ticket-row { grid-template-columns: 1fr; gap: 20px; }
+  .ticket-action { justify-content: flex-start; }
+  .ticket-price-col { text-align: left; }
+  .biglietti-header { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .biglietti-note { text-align: left; }
+}
+
+/* ============================================================
+   PRENOTAZIONE
+============================================================ */
+.prenota-section { background: var(--base-deep); }
+.prenota-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 112px; align-items: start;
+}
+.prenota-lead { font-size: 15px; line-height: 1.7; color: var(--ink-soft); margin: 24px 0 0; }
+.prenota-summary {
+  margin-top: 52px; padding-top: 40px;
+  border-top: 1px solid var(--hairline);
+  display: none;
+}
+.summary-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 13px 0; border-bottom: 1px solid var(--hairline);
+}
+.summary-row:last-child { border: none; }
+.summary-label { font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--ink-faint); font-weight: 500; }
+.summary-val { font-family: var(--font-display); font-size: 20px; }
+.summary-total { font-size: 30px; color: var(--accent); }
+
+/* Form */
+.field-group { margin-bottom: 28px; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.field-label {
+  display: block; font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase;
+  font-weight: 500; color: var(--ink-faint); margin-bottom: 10px;
+}
+.field-input, .field-select {
+  width: 100%; background: transparent;
+  border: none; border-bottom: 1px solid var(--hairline-strong); border-radius: 0;
+  padding: 12px 0; font-family: var(--font-body); font-size: 15px; color: var(--ink);
+  outline: none; transition: border-color 200ms;
+  -webkit-appearance: none; appearance: none;
+}
+.field-input:focus, .field-select:focus { border-bottom-color: var(--accent); }
+.field-input::placeholder { color: var(--ink-faint); }
+.field-select { cursor: pointer; }
+.field-select option { background: var(--base); }
+.field-textarea {
+  width: 100%; background: transparent;
+  border: 1px solid var(--hairline-strong); border-radius: 0;
+  padding: 14px; font-family: var(--font-body); font-size: 14px; color: var(--ink);
+  outline: none; resize: none; min-height: 88px;
+  transition: border-color 200ms;
+}
+.field-textarea:focus { border-color: var(--accent); }
+.field-textarea::placeholder { color: var(--ink-faint); }
+
+/* qty */
+.qty-row {
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--hairline-strong); padding: 12px 0;
+}
+.qty-label { font-size: 15px; color: var(--ink); }
+.qty-ctrl { display: flex; align-items: center; gap: 18px; }
+.qty-btn {
+  width: 30px; height: 30px; border: 1px solid var(--hairline-strong);
+  background: transparent; cursor: pointer; border-radius: 0;
+  font-size: 17px; color: var(--ink);
+  display: flex; align-items: center; justify-content: center;
+  transition: background 200ms, color 200ms, border-color 200ms;
+}
+.qty-btn:hover { background: var(--istituzionale); color: var(--base); border-color: var(--istituzionale); }
+.qty-num { font-family: var(--font-display); font-size: 24px; min-width: 36px; text-align: center; }
+
+.form-divider { margin: 36px 0; }
+.form-error {
+  border-left: 2px solid #a03030; background: rgba(160,48,48,0.07);
+  padding: 12px 16px; font-size: 13px; color: #7a1f1f;
+  margin-bottom: 28px; display: none; line-height: 1.5;
+}
+.form-note { font-size: 11px; color: var(--ink-faint); line-height: 1.65; margin-top: 20px; }
+
+@media (max-width:900px) { .prenota-grid { grid-template-columns: 1fr; gap: 64px; } }
+@media (max-width:580px) { .field-row { grid-template-columns: 1fr; } }
+
+/* ============================================================
+   FOOTER
+============================================================ */
+.footer { background: var(--istituzionale); padding: 80px 0 40px; }
+.footer-top {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 72px;
+}
+.footer-brand {
+  font-family: var(--font-display); font-size: 30px; letter-spacing: 0.28em;
+  text-transform: uppercase; color: var(--base); line-height: 1;
+}
+.footer-brand-sub {
+  font-family: var(--font-body); font-size: 10px; letter-spacing: 0.32em;
+  text-transform: uppercase; color: rgba(241,232,213,0.38);
+  margin-top: 8px; display: block;
+}
+.footer-nav { display: flex; gap: 40px; list-style: none; margin: 0; padding: 0; align-items: center; }
+.footer-nav a {
+  font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+  color: rgba(241,232,213,0.45); text-decoration: none; transition: color 200ms;
+}
+.footer-nav a:hover { color: var(--base); }
+.footer-bottom {
+  display: flex; justify-content: space-between; align-items: center;
+  padding-top: 24px; border-top: 1px solid rgba(241,232,213,0.1);
+}
+.footer-copy { font-size: 11px; color: rgba(241,232,213,0.28); }
+.footer-addr { font-size: 12px; color: rgba(241,232,213,0.38); text-align: right; line-height: 1.65; }
+.footer-addr a { color: rgba(241,232,213,0.38); text-decoration: none; }
+.footer-addr a:hover { color: rgba(241,232,213,0.65); }
+@media (max-width:720px) {
+  .footer-top { flex-direction: column; gap: 40px; }
+  .footer-bottom { flex-direction: column; gap: 16px; }
+  .footer-addr { text-align: left; }
+}
+
+/* ============================================================
+   SUCCESS MODAL
+============================================================ */
+.modal-backdrop {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(36,26,37,0.72); backdrop-filter: blur(10px);
+  display: none; align-items: center; justify-content: center;
+  padding: 24px;
+}
+.modal-backdrop.open { display: flex; }
+.modal-box {
+  background: var(--base); max-width: 520px; width: 100%;
+  border-top: 3px solid var(--accent);
+  animation: modalIn 0.32s cubic-bezier(0.2,0,0,1);
+}
+@keyframes modalIn {
+  from { transform: translateY(28px); opacity: 0; }
+  to   { transform: none; opacity: 1; }
+}
+.modal-inner { padding: 56px 48px; }
+.modal-eyebrow { margin-bottom: 22px; }
+.modal-title { font-size: 44px; margin: 0 0 18px; }
+.modal-body { font-size: 14px; color: var(--ink-soft); line-height: 1.7; margin-bottom: 36px; }
+.modal-ref-box {
+  background: var(--base-deep); padding: 20px 24px; margin-bottom: 40px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.modal-ref-label { font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--ink-faint); font-weight: 500; }
+.modal-ref-val { font-family: var(--font-display); font-size: 26px; color: var(--accent); }
+@media (max-width:580px) { .modal-inner { padding: 40px 28px; } .modal-title { font-size: 34px; } }
+
+/* ============================================================
+   TWEAKS PANEL
+============================================================ */
+.tweaks-panel { position: fixed; bottom: 24px; right: 24px; z-index: 150; }
+.tweaks-toggle {
+  width: 44px; height: 44px; border: none; cursor: pointer;
+  background: var(--istituzionale); display: flex; align-items: center; justify-content: center;
+  transition: background 200ms;
+}
+.tweaks-toggle:hover { background: var(--istituzionale-soft); }
+.tweaks-drawer {
+  position: absolute; bottom: 52px; right: 0;
+  background: var(--istituzionale); padding: 24px; width: 210px;
+  display: none;
+}
+.tweaks-drawer.open { display: block; }
+.tweaks-drawer-label {
+  font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase;
+  color: rgba(241,232,213,0.38); font-weight: 500; margin-bottom: 18px;
+}
+.tweaks-configs { display: flex; flex-direction: column; gap: 8px; }
+.cfg-btn {
+  display: flex; align-items: center; gap: 12px;
+  background: transparent; border: 1px solid rgba(241,232,213,0.14);
+  padding: 10px 14px; cursor: pointer;
+  color: rgba(241,232,213,0.6);
+  font-family: var(--font-body); font-size: 11px; letter-spacing: 0.15em;
+  text-transform: uppercase; font-weight: 500;
+  transition: border-color 200ms, color 200ms;
+}
+.cfg-btn:hover, .cfg-btn.active { border-color: var(--accent-soft); color: var(--base); }
+.cfg-swatch { width: 18px; height: 18px; flex-shrink: 0; }
+</style>
+</head>
+<body data-config="02">
+
+<!-- ── NAV ───────────────────────────────────────────────────────────────── -->
+<nav class="nav" id="navbar">
+  <a href="#" class="nav-logo">Marramiero</a>
+  <ul class="nav-links">
+    <li><a href="#serata">La Serata</a></li>
+    <li><a href="#biglietti">Biglietti</a></li>
+    <li><a href="#prenotazione" class="btn nav-cta">Prenota <span class="arrow"></span></a></li>
+  </ul>
+</nav>
+
+<!-- ── HERO ──────────────────────────────────────────────────────────────── -->
+<section class="hero" id="home">
+  <div class="hero-numeral" aria-hidden="true">II</div>
+  <div class="wrap hero-content">
+    <div class="hero-eyebrow-row fade-up">
+      <span class="eyebrow">Seconda Edizione · MMXXVI</span>
+      <span class="hero-date-tag">04 · 07 · 2026</span>
+    </div>
+    <h1 class="hero-title fade-up">
+      Midsummer<em>Gala</em>
+    </h1>
+    <div class="hero-bottom fade-up">
+      <div class="hero-meta">
+        <div class="hero-meta-item">
+          <span class="hero-meta-label">Luogo</span>
+          <span class="hero-meta-val">Tenuta Marramiero</span>
+        </div>
+        <div class="hero-meta-item">
+          <span class="hero-meta-label">Data</span>
+          <span class="hero-meta-val">Sabato 4 Luglio 2026</span>
+        </div>
+        <div class="hero-meta-item">
+          <span class="hero-meta-label">Orario</span>
+          <span class="hero-meta-val">Dalle ore 19:00</span>
+        </div>
+      </div>
+      <div class="hero-actions">
+        <a href="#prenotazione" class="btn btn--gold">Prenota un posto <span class="arrow"></span></a>
+        <a href="#serata" class="btn btn--ghost">Scopri la serata <span class="arrow"></span></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── COUNTDOWN ─────────────────────────────────────────────────────────── -->
+<div class="countdown-strip">
+  <div class="wrap">
+    <div class="countdown-inner">
+      <div class="cd-unit"><span class="cd-num" id="cd-d">46</span><span class="cd-lbl">Giorni</span></div>
+      <span class="cd-sep">·</span>
+      <div class="cd-unit"><span class="cd-num" id="cd-h">00</span><span class="cd-lbl">Ore</span></div>
+      <span class="cd-sep">·</span>
+      <div class="cd-unit"><span class="cd-num" id="cd-m">00</span><span class="cd-lbl">Minuti</span></div>
+      <span class="cd-sep">·</span>
+      <div class="cd-unit"><span class="cd-num" id="cd-s">00</span><span class="cd-lbl">Secondi</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── DETTAGLI ───────────────────────────────────────────────────────────── -->
+<section id="dettagli">
+  <div class="wrap">
+    <div class="hairline"></div>
+    <div class="detail-grid fade-up">
+      <div class="detail-cell">
+        <span class="eyebrow">Data</span>
+        <div class="detail-val">Sabato<br>4 Luglio 2026</div>
+        <div class="detail-sub">Seconda edizione<br>dell'evento estivo Marramiero</div>
+      </div>
+      <div class="detail-cell">
+        <span class="eyebrow">Orario</span>
+        <div class="detail-val">Dalle ore<br>19:00</div>
+        <div class="detail-sub">Apertura cancelli<br>ore 18:30</div>
+      </div>
+      <div class="detail-cell">
+        <span class="eyebrow">Luogo</span>
+        <div class="detail-val">Tenuta<br>Marramiero</div>
+        <div class="detail-sub">Contrada Sant'Andrea<br>Rosciano (PE)</div>
+      </div>
+      <div class="detail-cell">
+        <span class="eyebrow">Dress Code</span>
+        <div class="detail-val">Completo<br>& Abito Lungo</div>
+        <div class="detail-sub">Completo per i ragazzi<br>Abito lungo per le ragazze</div>
+      </div>
+    </div>
+    <div class="hairline"></div>
+  </div>
+</section>
+
+<!-- ── LA SERATA ─────────────────────────────────────────────────────────── -->
+<section class="serata-section" id="serata">
+  <div class="wrap">
+    <div class="serata-header fade-up">
+      <h2 class="display serata-title" style="font-size:clamp(52px,7vw,92px);margin:0;">
+        La<br><em>Serata</em>
+      </h2>
+      <p class="serata-intro">
+        Una notte senza eguali tra i vigneti della Tenuta Marramiero. Cucina d'autore, vini selezionati dalla cantina, musica dal vivo e un'atmosfera unica che celebra il cuore dell'estate abruzzese.
+      </p>
+    </div>
+    <div class="program-list fade-up">
+      <div class="program-item">
+        <div class="program-time">19:00</div>
+        <div class="program-name">Aperitivo<br>di Benvenuto</div>
+        <div class="program-desc">Calici di Pecorino e Cerasuolo d'Abruzzo DOC selezionati dalla cantina Marramiero, accompagnati da stuzzichini della tradizione abruzzese tra i filari del vigneto.</div>
+      </div>
+      <div class="program-item">
+        <div class="program-time">20:30</div>
+        <div class="program-name">Cena di<br>Gala</div>
+        <div class="program-desc">Menù d'autore in sei portate elaborato dallo chef con prodotti del territorio abruzzese. Abbinamenti enologici con la selezione Marramiero Alta Valle dell'Aterno.</div>
+      </div>
+      <div class="program-item">
+        <div class="program-time">22:30</div>
+        <div class="program-name">Live Music<br>&amp; Dancing</div>
+        <div class="program-desc">Una formazione musicale d'eccezione anima la serata con un repertorio che spazia dal jazz al lounge, per una notte di danza e convivialità sotto le stelle.</div>
+      </div>
+      <div class="program-item">
+        <div class="program-time">00:30</div>
+        <div class="program-name">Dessert<br>&amp; After</div>
+        <div class="program-desc">Dolci della tradizione e pasticceria contemporanea, accompagnati dai vini dolci Marramiero e dalla celebrazione della notte di mezza estate.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── BIGLIETTI ─────────────────────────────────────────────────────────── -->
+<section id="biglietti">
+  <div class="wrap">
+    <div class="biglietti-header fade-up">
+      <h2 class="display" style="font-size:clamp(48px,6.5vw,80px);margin:0;">
+        I <em>Biglietti</em>
+      </h2>
+      <p class="biglietti-note">
+        Posti limitati a 350 ospiti. La prenotazione è nominativa e confermata al ricevimento del saldo.
+      </p>
+    </div>
+    <div class="fade-up">
+
+      <!-- Standard -->
+      <div class="ticket-row" id="tr-standard">
+        <div>
+          <div class="ticket-name">Standard</div>
+          <div class="ticket-desc">Ingresso serale, aperitivo di benvenuto e cena di gala</div>
+        </div>
+        <div class="ticket-perks">
+          <div class="ticket-perk">Aperitivo di benvenuto</div>
+          <div class="ticket-perk">Cena di gala</div>
+          <div class="ticket-perk">Musica dal vivo</div>
+          <div class="ticket-perk">Vini selezionati Marramiero</div>
+        </div>
+        <div class="ticket-price-col">
+          <div class="ticket-price">€ 50</div>
+          <div class="ticket-unit">a persona</div>
+        </div>
+        <div class="ticket-action">
+          <button class="btn" type="button" onclick="selectTicket('standard')">
+            Prenota <span class="arrow"></span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Con navetta -->
+      <div class="ticket-row" id="tr-navetta">
+        <div>
+          <div class="ticket-name">Con<br><em style="font-style:italic;color:var(--accent);">Navetta</em></div>
+          <div class="ticket-desc">Include tutto il biglietto Standard più navetta andata e ritorno</div>
+        </div>
+        <div class="ticket-perks">
+          <div class="ticket-perk">Tutto del biglietto Standard</div>
+          <div class="ticket-perk">Navetta A/R inclusa</div>
+          <div class="ticket-perk">Pick-up da punto concordato</div>
+        </div>
+        <div class="ticket-price-col">
+          <div class="ticket-price">€ 65</div>
+          <div class="ticket-unit">a persona</div>
+        </div>
+        <div class="ticket-action">
+          <button class="btn btn--gold" type="button" onclick="selectTicket('navetta')">
+            Prenota <span class="arrow"></span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── PRENOTAZIONE ───────────────────────────────────────────────────────── -->
+<section class="prenota-section" id="prenotazione">
+  <div class="wrap">
+    <div class="prenota-grid">
+
+      <!-- Left -->
+      <div class="fade-up">
+        <span class="eyebrow" style="display:block;margin-bottom:28px;">Prenotazione</span>
+        <h2 class="display" style="font-size:clamp(44px,5.5vw,68px);margin:0;">
+          Riserva il tuo <em>posto</em>
+        </h2>
+        <p class="prenota-lead">
+          Compila il modulo per formalizzare la tua prenotazione. Riceverai conferma via email entro 24 ore. Il saldo è richiesto entro 30 giorni dall'evento.
+        </p>
+        <div class="prenota-summary" id="summary-panel">
+          <div class="summary-row">
+            <span class="summary-label">Tipologia</span>
+            <span class="summary-val" id="sum-type">—</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Quantità</span>
+            <span class="summary-val" id="sum-qty">—</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Totale stimato</span>
+            <span class="summary-val summary-total" id="sum-total">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Form -->
+      <div class="fade-up">
+        <div class="form-error" id="form-error"></div>
+        <form id="reservation-form" novalidate>
+
+          <div class="field-group">
+            <div class="field-row">
+              <div>
+                <label class="field-label" for="nome">Nome *</label>
+                <input class="field-input" type="text" id="nome" placeholder="Mario" required autocomplete="given-name" />
+              </div>
+              <div>
+                <label class="field-label" for="cognome">Cognome *</label>
+                <input class="field-input" type="text" id="cognome" placeholder="Rossi" required autocomplete="family-name" />
+              </div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="email">Email *</label>
+            <input class="field-input" type="email" id="email" placeholder="mario.rossi@email.com" required autocomplete="email" />
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="telefono">Telefono</label>
+            <input class="field-input" type="tel" id="telefono" placeholder="+39 333 000 0000" autocomplete="tel" />
+          </div>
+
+          <div class="hairline form-divider"></div>
+
+          <div class="field-group">
+            <label class="field-label" for="tipo_biglietto">Tipologia biglietto *</label>
+            <select class="field-select" id="tipo_biglietto" required>
+              <option value="">Seleziona una tipologia</option>
+              <option value="standard">Standard — € 50 / persona</option>
+              <option value="navetta">Con navetta inclusa — € 65 / persona</option>
+            </select>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Numero biglietti *</label>
+            <div class="qty-row">
+              <span class="qty-label" id="qty-label">1 biglietto</span>
+              <div class="qty-ctrl">
+                <button type="button" class="qty-btn" id="qty-minus">−</button>
+                <span class="qty-num" id="qty-display">1</span>
+                <input type="hidden" id="numero_biglietti" value="1" />
+                <button type="button" class="qty-btn" id="qty-plus">+</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="hairline form-divider"></div>
+
+          <div class="field-group">
+            <label class="field-label" for="note">Note speciali</label>
+            <textarea class="field-textarea" id="note" rows="3" placeholder="Allergie, richieste alimentari, accessibilità…"></textarea>
+          </div>
+
+          <p class="form-note">* Campi obbligatori. I dati personali sono trattati ai sensi del GDPR e non ceduti a terzi.</p>
+
+          <div style="margin-top:36px;">
+            <button type="submit" class="btn btn--gold" style="width:100%;justify-content:center;padding:20px;" id="submit-btn">
+              <span id="submit-text">Procedi al pagamento</span> <span class="arrow"></span>
+            </button>
+          </div>
+
+        </form>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ─────────────────────────────────────────────────────────────── -->
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer-top">
+      <div>
+        <div class="footer-brand">Marramiero</div>
+        <span class="footer-brand-sub">Midsummer Gala · Seconda Edizione</span>
+      </div>
+      <ul class="footer-nav">
+        <li><a href="#serata">La Serata</a></li>
+        <li><a href="#biglietti">Biglietti</a></li>
+        <li><a href="#prenotazione">Prenota</a></li>
+        <li><a href="mailto:info@marramiero.it">Contatti</a></li>
+      </ul>
+    </div>
+    <div class="hairline hairline--light"></div>
+    <div class="footer-bottom">
+      <span class="footer-copy">© 2026 Marramiero · Tutti i diritti riservati.</span>
+      <div class="footer-addr">
+        Contrada Sant'Andrea · Rosciano (PE)<br>
+        <a href="mailto:info@marramiero.it">info@marramiero.it</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- ── SUCCESS MODAL ─────────────────────────────────────────────────────── -->
+<div class="modal-backdrop" id="modal-backdrop">
+  <div class="modal-box">
+    <div class="modal-inner">
+      <div class="modal-eyebrow"><span class="eyebrow">Prenotazione confermata</span></div>
+      <h2 class="display modal-title">Ci vediamo<br>il <em>4 Luglio</em></h2>
+      <p class="modal-body">
+        Grazie per aver scelto il Midsummer Gala. Troverai la conferma nella tua casella email entro 24 ore. Il saldo è richiesto entro 30 giorni dall'evento.
+      </p>
+      <div class="modal-ref-box">
+        <span class="modal-ref-label">Numero prenotazione</span>
+        <span class="modal-ref-val" id="modal-ref">#0001</span>
+      </div>
+      <button class="btn btn--gold" style="width:100%;justify-content:center;padding:18px;" onclick="closeModal()">
+        Perfetto, grazie <span class="arrow"></span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── TWEAKS PANEL ───────────────────────────────────────────────────────── -->
+<div class="tweaks-panel">
+  <div class="tweaks-drawer" id="tweaks-drawer">
+    <div class="tweaks-drawer-label">Configurazione colori</div>
+    <div class="tweaks-configs">
+      <button class="cfg-btn" onclick="setConfig('01')">
+        <svg class="cfg-swatch" viewBox="0 0 18 18"><rect width="9" height="18" fill="#f6f4ef"/><rect x="9" width="9" height="18" fill="#8c8a82"/></svg>
+        01 · Platino
+      </button>
+      <button class="cfg-btn active" onclick="setConfig('02')">
+        <svg class="cfg-swatch" viewBox="0 0 18 18"><rect width="9" height="18" fill="#f1e8d5"/><rect x="9" width="9" height="18" fill="#b0884a"/></svg>
+        02 · Oro
+      </button>
+      <button class="cfg-btn" onclick="setConfig('03')">
+        <svg class="cfg-swatch" viewBox="0 0 18 18"><rect width="9" height="18" fill="#efe1d2"/><rect x="9" width="9" height="18" fill="#a8542d"/></svg>
+        03 · Rame
+      </button>
+      <button class="cfg-btn" onclick="setConfig('04')">
+        <svg class="cfg-swatch" viewBox="0 0 18 18"><rect width="9" height="18" fill="#f0dfc8"/><rect x="9" width="9" height="18" fill="#c75a23"/></svg>
+        04 · Arancio
+      </button>
+    </div>
+  </div>
+  <button class="tweaks-toggle" onclick="toggleTweaks()" title="Configurazione colori">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+      <circle cx="9" cy="9" r="2.5" stroke="#f1e8d5" stroke-width="1.2"/>
+      <line x1="9" y1="1" x2="9" y2="3.5"    stroke="#f1e8d5" stroke-width="1.2" stroke-linecap="round"/>
+      <line x1="9" y1="14.5" x2="9" y2="17"  stroke="#f1e8d5" stroke-width="1.2" stroke-linecap="round"/>
+      <line x1="1" y1="9" x2="3.5" y2="9"    stroke="#f1e8d5" stroke-width="1.2" stroke-linecap="round"/>
+      <line x1="14.5" y1="9" x2="17" y2="9"  stroke="#f1e8d5" stroke-width="1.2" stroke-linecap="round"/>
+      <line x1="3.2" y1="3.2" x2="4.9" y2="4.9"     stroke="#f1e8d5" stroke-width="1.2" stroke-linecap="round"/>
+      <line x1="13.1" y1="13.1" x2="14.8" y2="14.8" stroke="#f1e8d5" stroke-width="1.2" stroke-linecap="round"/>
+      <line x1="3.2" y1="14.8" x2="4.9" y2="13.1"   stroke="#f1e8d5" stroke-width="1.2" stroke-linecap="round"/>
+      <line x1="13.1" y1="4.9" x2="14.8" y2="3.2"   stroke="#f1e8d5" stroke-width="1.2" stroke-linecap="round"/>
+    </svg>
+  </button>
+</div>
+
+<script>
+// ── NAV ───────────────────────────────────────────────────────────────────────
+window.addEventListener('scroll', () => {
+  document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 80);
+}, { passive: true });
+
+// ── COUNTDOWN ─────────────────────────────────────────────────────────────────
+(function () {
+  const target = new Date('2026-07-04T19:00:00');
+  const pad = n => String(Math.floor(n)).padStart(2,'0');
+  function tick() {
+    const diff = target - Date.now();
+    if (diff <= 0) return;
+    document.getElementById('cd-d').textContent = pad(diff / 864e5);
+    document.getElementById('cd-h').textContent = pad((diff % 864e5) / 36e5);
+    document.getElementById('cd-m').textContent = pad((diff % 36e5) / 6e4);
+    document.getElementById('cd-s').textContent = pad((diff % 6e4) / 1e3);
+  }
+  tick(); setInterval(tick, 1000);
+})();
+
+// ── FADE-UP ───────────────────────────────────────────────────────────────────
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+}, { threshold: 0.08 });
+document.querySelectorAll('.fade-up').forEach(el => io.observe(el));
+
+// ── TICKET & SUMMARY ─────────────────────────────────────────────────────────
+const PRICES = { standard: 50, navetta: 65 };
+const LABELS = { standard: 'Standard', navetta: 'Con navetta inclusa' };
+const UNITS  = { standard: 'a persona', navetta: 'a persona' };
+
+function selectTicket(type) {
+  document.querySelectorAll('.ticket-row').forEach(r => r.classList.remove('selected'));
+  const row = document.getElementById('tr-' + type);
+  if (row) row.classList.add('selected');
+  document.getElementById('tipo_biglietto').value = type;
+  updateSummary();
+  document.getElementById('prenotazione').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function updateSummary() {
+  const type = document.getElementById('tipo_biglietto').value;
+  const qty  = parseInt(document.getElementById('numero_biglietti').value) || 1;
+  const panel = document.getElementById('summary-panel');
+  if (!type) { panel.style.display = 'none'; return; }
+  panel.style.display = 'block';
+  document.getElementById('sum-type').textContent  = LABELS[type] + ' · ' + UNITS[type];
+  document.getElementById('sum-qty').textContent   = qty;
+  document.getElementById('sum-total').textContent = '€ ' + (PRICES[type] * qty).toLocaleString('it-IT');
+  document.querySelectorAll('.ticket-row').forEach(r => r.classList.remove('selected'));
+  document.getElementById('tr-' + type)?.classList.add('selected');
+}
+document.getElementById('tipo_biglietto').addEventListener('change', updateSummary);
+
+// ── QTY ───────────────────────────────────────────────────────────────────────
+let qty = 1;
+function syncQty() {
+  document.getElementById('qty-display').textContent = qty;
+  document.getElementById('numero_biglietti').value  = qty;
+  document.getElementById('qty-label').textContent   = qty + (qty === 1 ? ' biglietto' : ' biglietti');
+  updateSummary();
+}
+document.getElementById('qty-minus').addEventListener('click', () => { if (qty > 1)  { qty--; syncQty(); } });
+document.getElementById('qty-plus').addEventListener('click', () => { if (qty < 20) { qty++; syncQty(); } });
+
+// ── PAYMENT RETURN ────────────────────────────────────────────────────────────
+(function () {
+  const params = new URLSearchParams(location.search);
+  const payment = params.get('payment');
+  const ref     = params.get('ref');
+  if (payment === 'success' && ref) {
+    history.replaceState({}, '', '/');
+    document.getElementById('modal-ref').textContent = '#' + String(ref).padStart(4,'0');
+    document.getElementById('modal-backdrop').classList.add('open');
+    document.body.classList.add('modal-open');
+  }
+  if (payment === 'cancelled') {
+    history.replaceState({}, '', '/');
+    const errEl = document.getElementById('form-error');
+    errEl.textContent = 'Pagamento annullato. Puoi riprovare quando vuoi.';
+    errEl.style.display = 'block';
+    document.getElementById('prenotazione').scrollIntoView({ behavior: 'smooth' });
+  }
+})();
+
+// ── FORM SUBMIT ───────────────────────────────────────────────────────────────
+document.getElementById('reservation-form').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const errEl = document.getElementById('form-error');
+  const btn   = document.getElementById('submit-btn');
+  const txt   = document.getElementById('submit-text');
+  errEl.style.display = 'none';
+
+  const payload = {
+    nome:             document.getElementById('nome').value.trim(),
+    cognome:          document.getElementById('cognome').value.trim(),
+    email:            document.getElementById('email').value.trim(),
+    telefono:         document.getElementById('telefono').value.trim(),
+    tipo_biglietto:   document.getElementById('tipo_biglietto').value,
+    numero_biglietti: parseInt(document.getElementById('numero_biglietti').value) || 1,
+    note:             document.getElementById('note').value.trim(),
+  };
+
+  if (!payload.nome || !payload.cognome || !payload.email || !payload.tipo_biglietto) {
+    errEl.textContent = 'Compila tutti i campi obbligatori per procedere.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true; txt.textContent = 'Reindirizzamento al pagamento…';
+
+  try {
+    const res  = await fetch('/api/create-checkout-session', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      errEl.textContent = data.error || 'Errore durante l\'invio. Riprova.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    window.location.href = data.url;
+
+  } catch {
+    errEl.textContent = 'Impossibile contattare il server. Controlla la connessione e riprova.';
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false; txt.textContent = 'Conferma prenotazione';
+  }
+});
+
+function closeModal() {
+  document.getElementById('modal-backdrop').classList.remove('open');
+  document.body.classList.remove('modal-open');
+}
+document.getElementById('modal-backdrop').addEventListener('click', function (e) {
+  if (e.target === this) closeModal();
+});
+
+// ── TWEAKS PANEL ──────────────────────────────────────────────────────────────
+function toggleTweaks() { document.getElementById('tweaks-drawer').classList.toggle('open'); }
+function setConfig(n) {
+  document.body.setAttribute('data-config', n);
+  document.querySelectorAll('.cfg-btn').forEach((b, i) => {
+    b.classList.toggle('active', ['01','02','03','04'][i] === n);
+  });
+}
+document.addEventListener('click', function (e) {
+  if (!document.querySelector('.tweaks-panel').contains(e.target)) {
+    document.getElementById('tweaks-drawer').classList.remove('open');
+  }
+});
+</script>
+</body>
+</html>
