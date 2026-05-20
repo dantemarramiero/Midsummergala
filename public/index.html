@@ -196,6 +196,7 @@ body.modal-open { overflow: hidden; }
   display: flex; justify-content: space-between; align-items: center;
   margin-bottom: 32px;
 }
+.hero .eyebrow { color: var(--accent-soft); opacity: 1; letter-spacing: 0.28em; }
 .hero-date-tag {
   font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
   font-weight: 500; color: rgba(241,232,213,0.55);
@@ -271,6 +272,7 @@ body.modal-open { overflow: hidden; }
   padding: 48px 36px;
   border-right: 1px solid var(--hairline);
   display: flex; flex-direction: column; gap: 18px;
+  justify-content: flex-start;
 }
 .detail-cell:first-child { padding-left: 0; }
 .detail-cell:last-child { border-right: none; padding-right: 0; }
@@ -327,7 +329,7 @@ body.modal-open { overflow: hidden; }
 .program-list { display: flex; flex-direction: column; }
 .program-item {
   display: grid; grid-template-columns: 110px 1fr 1fr;
-  align-items: start; gap: 40px;
+  align-items: baseline; gap: 40px;
   padding: 40px 0;
   border-top: 1px solid rgba(241,232,213,0.1);
 }
@@ -724,7 +726,7 @@ body.modal-open { overflow: hidden; }
       </div>
       <div class="program-item">
         <div class="program-time">20:30</div>
-        <div class="program-name">Cena di<br>Gala</div>
+        <div class="program-name">Cena<br>Girobraccio</div>
         <div class="program-desc">Menù d'autore in sei portate elaborato dallo chef con prodotti del territorio abruzzese. Abbinamenti enologici con la selezione Marramiero Alta Valle dell'Aterno.</div>
       </div>
       <div class="program-item">
