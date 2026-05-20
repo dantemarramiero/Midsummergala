@@ -952,10 +952,7 @@ body.modal-open { overflow: hidden; }
             <span class="summary-label">Tipologia</span>
             <span class="summary-val" id="sum-type">—</span>
           </div>
-          <div class="summary-row">
-            <span class="summary-label">Quantità</span>
-            <span class="summary-val" id="sum-qty">—</span>
-          </div>
+
           <div class="summary-row">
             <span class="summary-label">Totale stimato</span>
             <span class="summary-val summary-total" id="sum-total">—</span>
@@ -1009,18 +1006,7 @@ body.modal-open { overflow: hidden; }
             </div>
           </div>
 
-          <div class="field-group">
-            <label class="field-label">Numero biglietti *</label>
-            <div class="qty-row">
-              <span class="qty-label" id="qty-label">1 biglietto</span>
-              <div class="qty-ctrl">
-                <button type="button" class="qty-btn" id="qty-minus">−</button>
-                <span class="qty-num" id="qty-display">1</span>
-                <input type="hidden" id="numero_biglietti" value="1" />
-                <button type="button" class="qty-btn" id="qty-plus">+</button>
-              </div>
-            </div>
-          </div>
+          <input type="hidden" id="numero_biglietti" value="1" />
 
           <div class="hairline form-divider"></div>
 
@@ -1183,28 +1169,15 @@ function pickTicket(type, scrollToForm = true) {
 
 function updateSummary() {
   const type = document.getElementById('tipo_biglietto').value;
-  const qty  = parseInt(document.getElementById('numero_biglietti').value) || 1;
   const panel = document.getElementById('summary-panel');
   if (!type) { panel.style.display = 'none'; return; }
   panel.style.display = 'block';
   document.getElementById('sum-type').textContent  = LABELS[type] + ' · ' + UNITS[type];
-  document.getElementById('sum-qty').textContent   = qty;
-  document.getElementById('sum-total').textContent = '€ ' + (PRICES[type] * qty).toLocaleString('it-IT');
+  document.getElementById('sum-total').textContent = '€ ' + PRICES[type].toLocaleString('it-IT');
   document.querySelectorAll('.ticket-row').forEach(r => r.classList.remove('selected'));
   document.getElementById('tr-' + type)?.classList.add('selected');
 }
 document.getElementById('tipo_biglietto').addEventListener('change', updateSummary);
-
-// ── QTY ───────────────────────────────────────────────────────────────────────
-let qty = 1;
-function syncQty() {
-  document.getElementById('qty-display').textContent = qty;
-  document.getElementById('numero_biglietti').value  = qty;
-  document.getElementById('qty-label').textContent   = qty + (qty === 1 ? ' biglietto' : ' biglietti');
-  updateSummary();
-}
-document.getElementById('qty-minus').addEventListener('click', () => { if (qty > 1)  { qty--; syncQty(); } });
-document.getElementById('qty-plus').addEventListener('click', () => { if (qty < 20) { qty++; syncQty(); } });
 
 // ── PAYMENT RETURN ────────────────────────────────────────────────────────────
 (function () {

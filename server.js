@@ -207,7 +207,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
     return res.status(400).json({ error: 'Tipo biglietto non valido.' });
   }
 
-  const qty        = Math.max(1, Math.min(20, parseInt(numero_biglietti) || 1));
+  const qty        = 1; // massimo 1 biglietto per ordine
   const emailClean = email.toLowerCase().trim();
 
   // Block duplicate confirmed reservations
