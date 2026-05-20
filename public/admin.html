@@ -510,6 +510,7 @@ function renderTable(rows) {
       <td class="td-date">${fmtDate(r.created_at)}</td>
       <td>
         <div class="actions-cell">
+          <button class="action-btn" onclick="sendEmail(${r.id})" title="Invia email di conferma">✉</button>
           <button class="action-btn del" onclick="deleteRow(${r.id})" title="Elimina">✕</button>
         </div>
       </td>
@@ -538,6 +539,13 @@ async function updateStato(id, select) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ stato })
   });
+}
+
+async function sendEmail(id) {
+  const res = await fetch(`/api/admin/send-confirmation/${id}?key=${encodeURIComponent(adminKey)}`, { method: 'POST' });
+  const data = await res.json();
+  if (res.ok) alert('✓ Email di conferma inviata!');
+  else alert('Errore: ' + data.error);
 }
 
 async function deleteRow(id) {

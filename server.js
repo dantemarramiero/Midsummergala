@@ -13,6 +13,122 @@ const DB_PATH = path.join(__dirname, 'gala.db');
 
 const stripe = STRIPE_SECRET ? require('stripe')(STRIPE_SECRET) : null;
 
+// ── Email ─────────────────────────────────────────────────────────────────────
+const { Resend } = require('resend');
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+const EMAIL_FROM = process.env.RESEND_FROM || 'Midsummer Gala <noreply@marramiero.it>';
+
+async function sendConfirmationEmail(reservation) {
+  if (!resend) return;
+  const { id, nome, cognome, email, tipo_biglietto, numero_biglietti } = reservation;
+  const tipoLabel = tipo_biglietto === 'navetta' ? 'Con Navetta Inclusa' : 'Standard';
+  const prezzoUnit = tipo_biglietto === 'navetta' ? 65 : 50;
+  const totale = prezzoUnit * numero_biglietti;
+  const ref = '#' + String(id).padStart(4, '0');
+
+  await resend.emails.send({
+    from: EMAIL_FROM,
+    to: email,
+    reply_to: process.env.RESEND_REPLY_TO,
+    subject: `Prenotazione confermata — Midsummer Gala 2026 ${ref}`,
+    html: `<!DOCTYPE html>
+<html lang="it">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f1e8d5;font-family:'Georgia',serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1e8d5;padding:40px 0;">
+    <tr><td align="center">
+      <table width="580" cellpadding="0" cellspacing="0" style="background:#241a25;max-width:580px;width:100%;">
+
+        <!-- Header -->
+        <tr><td style="padding:48px 48px 32px;border-bottom:1px solid rgba(176,136,74,0.3);">
+          <p style="margin:0;font-size:11px;letter-spacing:0.3em;text-transform:uppercase;color:#b0884a;">Marramiero</p>
+          <h1 style="margin:12px 0 0;font-size:36px;font-weight:400;color:#f1e8d5;letter-spacing:-0.02em;line-height:1.1;">
+            Midsummer<br><em style="font-style:italic;color:#c9a368;">Gala</em>
+          </h1>
+        </td></tr>
+
+        <!-- Conferma -->
+        <tr><td style="padding:40px 48px 32px;">
+          <p style="margin:0 0 8px;font-size:11px;letter-spacing:0.3em;text-transform:uppercase;color:#b0884a;">Prenotazione confermata</p>
+          <h2 style="margin:0 0 24px;font-size:26px;font-weight:400;color:#f1e8d5;">Ciao ${nome},</h2>
+          <p style="margin:0;font-size:15px;line-height:1.7;color:rgba(241,232,213,0.7);">
+            La tua prenotazione per il <strong style="color:#f1e8d5;">Midsummer Gala 2026</strong> è confermata.<br>
+            Ti aspettiamo sabato 4 luglio alla Tenuta Marramiero.
+          </p>
+        </td></tr>
+
+        <!-- Riepilogo -->
+        <tr><td style="padding:0 48px 32px;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:rgba(176,136,74,0.08);border:1px solid rgba(176,136,74,0.2);">
+            <tr><td style="padding:28px 28px 8px;">
+              <p style="margin:0 0 16px;font-size:10px;letter-spacing:0.28em;text-transform:uppercase;color:rgba(241,232,213,0.4);">Riepilogo prenotazione</p>
+            </td></tr>
+            <tr><td style="padding:0 28px 8px;">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="padding:10px 0;border-bottom:1px solid rgba(241,232,213,0.08);font-size:13px;color:rgba(241,232,213,0.5);letter-spacing:0.1em;text-transform:uppercase;">Riferimento</td>
+                  <td style="padding:10px 0;border-bottom:1px solid rgba(241,232,213,0.08);font-size:20px;color:#c9a368;text-align:right;font-style:italic;">${ref}</td>
+                </tr>
+                <tr>
+                  <td style="padding:10px 0;border-bottom:1px solid rgba(241,232,214,0.08);font-size:13px;color:rgba(241,232,213,0.5);letter-spacing:0.1em;text-transform:uppercase;">Nominativo</td>
+                  <td style="padding:10px 0;border-bottom:1px solid rgba(241,232,213,0.08);font-size:15px;color:#f1e8d5;text-align:right;">${nome} ${cognome}</td>
+                </tr>
+                <tr>
+                  <td style="padding:10px 0;border-bottom:1px solid rgba(241,232,213,0.08);font-size:13px;color:rgba(241,232,213,0.5);letter-spacing:0.1em;text-transform:uppercase;">Tipologia</td>
+                  <td style="padding:10px 0;border-bottom:1px solid rgba(241,232,213,0.08);font-size:15px;color:#f1e8d5;text-align:right;">${tipoLabel}</td>
+                </tr>
+                <tr>
+                  <td style="padding:10px 0;border-bottom:1px solid rgba(241,232,213,0.08);font-size:13px;color:rgba(241,232,213,0.5);letter-spacing:0.1em;text-transform:uppercase;">Biglietti</td>
+                  <td style="padding:10px 0;border-bottom:1px solid rgba(241,232,213,0.08);font-size:15px;color:#f1e8d5;text-align:right;">${numero_biglietti}</td>
+                </tr>
+                <tr>
+                  <td style="padding:14px 0 0;font-size:13px;color:rgba(241,232,213,0.5);letter-spacing:0.1em;text-transform:uppercase;">Totale pagato</td>
+                  <td style="padding:14px 0 0;font-size:24px;color:#c9a368;text-align:right;">€ ${totale}</td>
+                </tr>
+              </table>
+            </td></tr>
+            <tr><td style="padding:28px;"></td></tr>
+          </table>
+        </td></tr>
+
+        <!-- Dettagli evento -->
+        <tr><td style="padding:0 48px 40px;">
+          <table width="100%" cellpadding="0" cellspacing="0">
+            <tr>
+              <td width="50%" style="padding-right:16px;">
+                <p style="margin:0 0 6px;font-size:10px;letter-spacing:0.28em;text-transform:uppercase;color:#b0884a;">Data</p>
+                <p style="margin:0;font-size:16px;color:#f1e8d5;">Sabato 4 Luglio 2026</p>
+                <p style="margin:4px 0 0;font-size:13px;color:rgba(241,232,213,0.5);">Dalle ore 19:00</p>
+              </td>
+              <td width="50%">
+                <p style="margin:0 0 6px;font-size:10px;letter-spacing:0.28em;text-transform:uppercase;color:#b0884a;">Luogo</p>
+                <p style="margin:0;font-size:16px;color:#f1e8d5;">Tenuta Marramiero</p>
+                <p style="margin:4px 0 0;font-size:13px;color:rgba(241,232,213,0.5);">Contrada Sant'Andrea, Rosciano (PE)</p>
+              </td>
+            </tr>
+            <tr><td colspan="2" style="padding-top:24px;">
+              <p style="margin:0 0 6px;font-size:10px;letter-spacing:0.28em;text-transform:uppercase;color:#b0884a;">Dress Code</p>
+              <p style="margin:0;font-size:16px;color:#f1e8d5;">Completo per i ragazzi · Abito lungo per le ragazze</p>
+            </td></tr>
+          </table>
+        </td></tr>
+
+        <!-- Footer -->
+        <tr><td style="padding:28px 48px;border-top:1px solid rgba(176,136,74,0.2);">
+          <p style="margin:0;font-size:12px;color:rgba(241,232,213,0.3);line-height:1.7;">
+            Marramiero · Contrada Sant'Andrea · Rosciano (PE)<br>
+            Per informazioni: <a href="mailto:info@marramiero.it" style="color:rgba(176,136,74,0.7);text-decoration:none;">info@marramiero.it</a>
+          </p>
+        </td></tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`,
+  });
+}
+
 const db = new DatabaseSync(DB_PATH);
 
 db.exec(`
@@ -49,7 +165,10 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), (req, res) =
     const session = event.data.object;
     const rid = session.metadata?.reservation_id;
     if (rid) {
-      db.prepare('UPDATE reservations SET stato = ? WHERE id = ?').run('confermata', parseInt(rid));
+      const reservationId = parseInt(rid);
+      db.prepare('UPDATE reservations SET stato = ? WHERE id = ?').run('confermata', reservationId);
+      const reservation = db.prepare('SELECT * FROM reservations WHERE id = ?').get(reservationId);
+      if (reservation) sendConfirmationEmail(reservation).catch(console.error);
     }
   }
 
@@ -138,6 +257,18 @@ app.post('/api/create-checkout-session', async (req, res) => {
     // Roll back pending reservation on Stripe error
     db.prepare('DELETE FROM reservations WHERE id = ?').run(reservationId);
     res.status(500).json({ error: 'Errore Stripe: ' + err.message });
+  }
+});
+
+// ── Send confirmation email manually (admin) ─────────────────────────────────
+app.post('/api/admin/send-confirmation/:id', authAdmin, async (req, res) => {
+  const reservation = db.prepare('SELECT * FROM reservations WHERE id = ?').get(req.params.id);
+  if (!reservation) return res.status(404).json({ error: 'Prenotazione non trovata.' });
+  try {
+    await sendConfirmationEmail(reservation);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
