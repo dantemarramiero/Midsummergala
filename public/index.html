@@ -514,6 +514,56 @@ body.modal-open { overflow: hidden; }
 }
 
 /* ============================================================
+   HOTEL
+============================================================ */
+.hotel-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 32px; padding: 56px 0;
+}
+.hotel-card {
+  padding: 40px; border: 1px solid var(--hairline);
+  display: flex; flex-direction: column; gap: 24px;
+  background: var(--base);
+}
+.hotel-card-header { display: flex; align-items: flex-start; gap: 16px; }
+.hotel-name {
+  font-family: var(--font-display); font-size: 26px;
+  font-weight: 400; color: var(--ink); line-height: 1.1;
+}
+.hotel-tag {
+  font-size: 12px; color: var(--accent); margin-top: 6px;
+  letter-spacing: 0.05em;
+}
+.hotel-desc { font-size: 14px; line-height: 1.7; color: var(--ink-soft); margin: 0; }
+.hotel-rates { display: flex; flex-direction: column; }
+.rate-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 10px 0; border-bottom: 1px solid var(--hairline);
+  font-size: 13px; gap: 16px;
+}
+.rate-row:last-child { border-bottom: none; }
+.rate-row span:first-child { color: var(--ink); }
+.rate-row span:last-child { color: var(--ink-soft); white-space: nowrap; font-weight: 500; }
+.rate-extra span:first-child { color: var(--ink-soft); }
+.rate-extra span:last-child { font-weight: 400; }
+.hotel-book {
+  padding: 20px; background: var(--base-deep);
+  display: flex; flex-direction: column; gap: 8px;
+  margin-top: auto;
+}
+.hotel-book-label {
+  font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase;
+  color: var(--ink-faint); font-weight: 500;
+}
+.hotel-book-link {
+  font-size: 14px; color: var(--accent); text-decoration: none;
+  font-family: var(--font-display); font-size: 17px; line-height: 1.5;
+}
+.hotel-book-link:hover { color: var(--accent-soft); }
+@media (max-width:900px) { .hotel-grid { grid-template-columns: 1fr; gap: 20px; } }
+@media (max-width:580px) { .hotel-card { padding: 28px 20px; } }
+
+/* ============================================================
    FOOTER
 ============================================================ */
 .footer { background: var(--istituzionale); padding: 80px 0 40px; }
@@ -624,6 +674,7 @@ body.modal-open { overflow: hidden; }
   <ul class="nav-links">
     <li><a href="#serata">La Serata</a></li>
     <li><a href="#biglietti">Biglietti</a></li>
+    <li><a href="#hotel">Hotel</a></li>
     <li><a href="#prenotazione" class="btn nav-cta">Prenota <span class="arrow"></span></a></li>
   </ul>
 </nav>
@@ -788,7 +839,7 @@ body.modal-open { overflow: hidden; }
         <div class="ticket-perks">
           <div class="ticket-perk">Tutto del biglietto Standard</div>
           <div class="ticket-perk">Navetta A/R inclusa</div>
-          <div class="ticket-perk">Pick-up da punto concordato</div>
+          <div class="ticket-perk">Partenza ore 18:00 — Stazione Centrale Pescara</div>
         </div>
         <div class="ticket-price-col">
           <div class="ticket-price">€ 65</div>
@@ -802,6 +853,79 @@ body.modal-open { overflow: hidden; }
       </div>
 
     </div>
+  </div>
+</section>
+
+<!-- ── CONVENZIONI ALBERGHIERE ───────────────────────────────────────────── -->
+<section id="hotel" style="background:var(--base-deep);">
+  <div class="wrap">
+    <div class="fade-up" style="margin-bottom:56px;">
+      <span class="eyebrow" style="display:block;margin-bottom:20px;">Per chi viene da lontano</span>
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;">
+        <h2 class="display" style="font-size:clamp(40px,5.5vw,72px);margin:0;">
+          Convenzioni <em>Alberghiere</em>
+        </h2>
+        <p style="max-width:320px;font-size:13px;line-height:1.7;color:var(--ink-soft);text-align:right;">
+          Tariffe riservate agli ospiti del Midsummer Gala.<br>Cita <strong>«Convenzione Marramiero»</strong> al momento della prenotazione.
+        </p>
+      </div>
+    </div>
+    <div class="hairline"></div>
+
+    <div class="hotel-grid fade-up">
+
+      <!-- Esplanade -->
+      <div class="hotel-card">
+        <div class="hotel-card-header">
+          <div>
+            <div class="hotel-name">Esplanade Pescara Centro</div>
+            <div class="hotel-tag">⭐ Sul mare · Centro città</div>
+          </div>
+        </div>
+        <p class="hotel-desc">
+          Comodo se si vuole stare sul mare in centro, a 5 minuti a piedi dalla Stazione Centrale di Pescara — da cui partirà la navetta per la festa.
+        </p>
+        <div class="hotel-rates">
+          <div class="rate-row"><span>Camera Singola</span><span>€ 94 / notte B&B</span></div>
+          <div class="rate-row"><span>Camera Matrimoniale</span><span>€ 138 / notte B&B</span></div>
+          <div class="rate-row"><span>Camera Tripla</span><span>€ 157 / notte B&B</span></div>
+          <div class="rate-row rate-extra"><span>Supplemento fronte mare</span><span>+ € 15 / notte</span></div>
+          <div class="rate-row rate-extra"><span>Tassa di soggiorno</span><span>€ 2 / persona / notte</span></div>
+        </div>
+        <div class="hotel-book">
+          <span class="hotel-book-label">Come prenotare</span>
+          <a href="mailto:prenotazioni@esplanade.net?subject=CONVENZIONE MARRAMIERO" class="hotel-book-link">
+            prenotazioni@esplanade.net<br>
+            <span style="font-size:11px;opacity:0.65;">oggetto: CONVENZIONE MARRAMIERO</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Palazzo de Fabritiis -->
+      <div class="hotel-card">
+        <div class="hotel-card-header">
+          <div>
+            <div class="hotel-name">Palazzo de Fabritiis</div>
+            <div class="hotel-tag">🏛 Vista Majella · Atmosfera d'epoca</div>
+          </div>
+        </div>
+        <p class="hotel-desc">
+          Camere di charme con vista sulla Majella, in un palazzo storico dall'atmosfera unica.
+        </p>
+        <div class="hotel-rates">
+          <div class="rate-row"><span>Camera dei Colombi</span><span>€ 115 / notte</span></div>
+          <div class="rate-row rate-extra" style="padding-left:16px;"><span style="font-size:12px;opacity:0.7;">Vista Majella, balcone, A/C</span><span style="font-size:12px;opacity:0.7;">+ € 30 / letto aggiunto</span></div>
+          <div class="rate-row"><span>Camera della Musa</span><span>€ 105 / notte</span></div>
+          <div class="rate-row"><span>Camera delle Fiere</span><span>€ 95 / notte</span></div>
+          <div class="rate-row rate-extra" style="padding-left:16px;"><span style="font-size:12px;opacity:0.7;">Vista Majella, A/C</span><span></span></div>
+          <div class="rate-row"><span>Camera dell'Edera (tripla)</span><span>€ 100 / notte</span></div>
+          <div class="rate-row rate-extra" style="padding-left:16px;"><span style="font-size:12px;opacity:0.7;">Vista via IV Novembre, ventilatore</span><span></span></div>
+          <div class="rate-row"><span>Camere doppie/matrimoniali accessorie</span><span>€ 60 / notte</span></div>
+        </div>
+      </div>
+
+    </div>
+    <div class="hairline" style="margin-top:0;"></div>
   </div>
 </section>
 
@@ -876,6 +1000,7 @@ body.modal-open { overflow: hidden; }
               <button type="button" class="ticket-pick-btn" id="pick-navetta" onclick="pickTicket('navetta')">
                 <span class="pick-name">Con Navetta</span>
                 <span class="pick-price">€ 65 <span class="pick-unit">/ persona</span></span>
+                <span style="font-size:11px;color:var(--ink-faint);margin-top:2px;">Partenza ore 18:00 · Stazione Pescara</span>
               </button>
             </div>
           </div>
