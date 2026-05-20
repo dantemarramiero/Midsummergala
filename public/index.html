@@ -141,7 +141,7 @@ body.modal-open { overflow: hidden; }
 .nav-links a:hover { opacity: 1; }
 .nav-cta { opacity: 1 !important; padding: 12px 24px; font-size: 11px; }
 
-/* light-outline on photo hero, dark once scrolled */
+/* light-outline on photo hero */
 .nav:not(.scrolled) .nav-cta {
   background: transparent;
   border-color: rgba(241,232,213,0.45);
@@ -151,6 +151,17 @@ body.modal-open { overflow: hidden; }
   background: rgba(241,232,213,0.12);
   border-color: rgba(241,232,213,0.70);
   color: var(--base);
+}
+/* dark button once scrolled — forza testo chiaro */
+.nav.scrolled .nav-cta {
+  background: var(--istituzionale);
+  border-color: var(--istituzionale);
+  color: var(--base) !important;
+}
+.nav.scrolled .nav-cta:hover {
+  background: var(--istituzionale-soft);
+  border-color: var(--istituzionale-soft);
+  color: var(--base) !important;
 }
 
 @media (max-width:720px) { .nav { padding: 0 24px; } .nav-links { display: none; } }
