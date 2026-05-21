@@ -24,25 +24,34 @@ if (STRIPE_SECRET) {
 }
 
 // ── Email ─────────────────────────────────────────────────────────────────────
-const { Resend } = require('resend');
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
-const EMAIL_FROM = process.env.RESEND_FROM || 'Midsummer Gala <noreply@marramiero.it>';
+const nodemailer  = require('nodemailer');
+const { Resend }  = require('resend');
+const resend      = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+
+// Gmail transporter (priorità se configurato)
+const gmailTransporter = (process.env.GMAIL_USER && process.env.GMAIL_PASS)
+  ? nodemailer.createTransport({
+      service: 'gmail',
+      auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_PASS }
+    })
+  : null;
+
+const EMAIL_FROM      = process.env.RESEND_FROM  || `Midsummer Gala <${process.env.GMAIL_USER || 'noreply@marramiero.it'}>`;
+const EMAIL_FROM_NAME = 'Midsummer Gala 2026';
 
 async function sendConfirmationEmail(reservation) {
-  if (!resend) { console.log('EMAIL: Resend non configurato, skip.'); return; }
   const { id, nome, cognome, email, tipo_biglietto, numero_biglietti } = reservation;
   console.log(`EMAIL: Invio a ${email} (prenotazione #${id})...`);
+  if (!gmailTransporter && !resend) {
+    console.log('EMAIL: Nessun provider configurato (GMAIL_USER o RESEND_API_KEY mancante).');
+    return;
+  }
   const tipoLabel = tipo_biglietto === 'navetta' ? 'Con Navetta Inclusa' : 'Standard';
   const prezzoUnit = tipo_biglietto === 'navetta' ? 65 : 50;
   const totale = prezzoUnit * numero_biglietti;
   const ref = '#' + String(id).padStart(4, '0');
 
-  const result = await resend.emails.send({
-    from: EMAIL_FROM,
-    to: email,
-    reply_to: process.env.RESEND_REPLY_TO,
-    subject: `Prenotazione confermata — Midsummer Gala 2026 ${ref}`,
-    html: `<!DOCTYPE html>
+  const htmlBody = `<!DOCTYPE html>
 <html lang="it">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="margin:0;padding:0;background:#f1e8d5;font-family:'Georgia',serif;">
@@ -136,9 +145,29 @@ async function sendConfirmationEmail(reservation) {
     </td></tr>
   </table>
 </body>
-</html>`,
-  });
-  console.log(`EMAIL: Inviata OK a ${email} — ID: ${result?.data?.id || result?.id || 'n/a'}`);
+</html>`;
+
+  if (gmailTransporter) {
+    // Invia via Gmail SMTP
+    const info = await gmailTransporter.sendMail({
+      from: `"${EMAIL_FROM_NAME}" <${process.env.GMAIL_USER}>`,
+      to: email,
+      replyTo: process.env.RESEND_REPLY_TO || process.env.GMAIL_USER,
+      subject: `Prenotazione confermata — Midsummer Gala 2026 ${ref}`,
+      html: htmlBody,
+    });
+    console.log(`EMAIL: Inviata via Gmail OK — MessageID: ${info.messageId}`);
+  } else {
+    // Fallback Resend
+    const result = await resend.emails.send({
+      from: EMAIL_FROM,
+      to: email,
+      reply_to: process.env.RESEND_REPLY_TO,
+      subject: `Prenotazione confermata — Midsummer Gala 2026 ${ref}`,
+      html: htmlBody,
+    });
+    console.log(`EMAIL: Inviata via Resend OK — ID: ${result?.data?.id || result?.id || 'n/a'}`);
+  }
 }
 
 const db = new DatabaseSync(DB_PATH);
@@ -463,5 +492,7 @@ app.get('/api/admin/export', authAdmin, (req, res) => {
 app.listen(PORT, () => {
   console.log(`\n✦ Midsummer Gala  →  http://localhost:${PORT}`);
   console.log(`  Admin panel      →  http://localhost:${PORT}/admin.html?key=${ADMIN_PASSWORD}`);
-  console.log(`  Stripe           →  ${stripe ? '✓ configurato' : '✗ STRIPE_SECRET_KEY mancante'}\n`);
+  console.log(`  Stripe           →  ${stripe ? '✓ configurato' : '✗ STRIPE_SECRET_KEY mancante'}`);
+  const emailProvider = gmailTransporter ? `✓ Gmail (${process.env.GMAIL_USER})` : resend ? '✓ Resend' : '✗ Nessun provider email';
+  console.log(`  Email            →  ${emailProvider}\n`);
 });
