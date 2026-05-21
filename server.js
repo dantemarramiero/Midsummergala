@@ -9,7 +9,7 @@ const PORT  = process.env.PORT || 3000;
 const ADMIN_PASSWORD   = process.env.ADMIN_PASSWORD   || 'gala2026';
 const STRIPE_SECRET    = process.env.STRIPE_SECRET_KEY;
 const WEBHOOK_SECRET   = process.env.STRIPE_WEBHOOK_SECRET;
-const DB_PATH = path.join(__dirname, 'gala.db');
+const DB_PATH = process.env.DB_PATH || path.join(process.env.RAILWAY_VOLUME_MOUNT_PATH || __dirname, 'gala.db');
 
 const https  = require('https');
 const stripe = STRIPE_SECRET ? require('stripe')(STRIPE_SECRET) : null;
