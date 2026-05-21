@@ -29,14 +29,15 @@ const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KE
 const EMAIL_FROM = process.env.RESEND_FROM || 'Midsummer Gala <noreply@marramiero.it>';
 
 async function sendConfirmationEmail(reservation) {
-  if (!resend) return;
+  if (!resend) { console.log('EMAIL: Resend non configurato, skip.'); return; }
   const { id, nome, cognome, email, tipo_biglietto, numero_biglietti } = reservation;
+  console.log(`EMAIL: Invio a ${email} (prenotazione #${id})...`);
   const tipoLabel = tipo_biglietto === 'navetta' ? 'Con Navetta Inclusa' : 'Standard';
   const prezzoUnit = tipo_biglietto === 'navetta' ? 65 : 50;
   const totale = prezzoUnit * numero_biglietti;
   const ref = '#' + String(id).padStart(4, '0');
 
-  await resend.emails.send({
+  const result = await resend.emails.send({
     from: EMAIL_FROM,
     to: email,
     reply_to: process.env.RESEND_REPLY_TO,
@@ -137,6 +138,7 @@ async function sendConfirmationEmail(reservation) {
 </body>
 </html>`,
   });
+  console.log(`EMAIL: Inviata OK a ${email} — ID: ${result?.data?.id || result?.id || 'n/a'}`);
 }
 
 const db = new DatabaseSync(DB_PATH);
