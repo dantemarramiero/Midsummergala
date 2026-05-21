@@ -12,10 +12,7 @@ const WEBHOOK_SECRET   = process.env.STRIPE_WEBHOOK_SECRET;
 const DB_PATH = path.join(__dirname, 'gala.db');
 
 const https  = require('https');
-const Stripe = require('stripe');
-const stripe = STRIPE_SECRET ? new Stripe(STRIPE_SECRET, {
-  httpClient: Stripe.createNodeHttpClient(new https.Agent({ keepAlive: false }))
-}) : null;
+const stripe = STRIPE_SECRET ? require('stripe')(STRIPE_SECRET) : null;
 
 // Test connessione a Stripe all'avvio
 if (STRIPE_SECRET) {
@@ -269,9 +266,11 @@ app.post('/api/create-checkout-session', async (req, res) => {
   } catch (err) {
     // Roll back pending reservation on Stripe error
     db.prepare('DELETE FROM reservations WHERE id = ?').run(reservationId);
-    console.error('STRIPE ERROR type:', err.type);
-    console.error('STRIPE ERROR code:', err.code);
-    console.error('STRIPE ERROR message:', err.message);
+    console.error('STRIPE ERROR:', JSON.stringify({
+      type: err.type, code: err.code, statusCode: err.statusCode,
+      message: err.message, raw: err.raw,
+      stack: err.stack?.split('\n').slice(0,3).join(' | ')
+    }, null, 0));
     res.status(500).json({ error: 'Errore Stripe: ' + err.message });
   }
 });
