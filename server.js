@@ -157,8 +157,9 @@ db.exec(`
   )
 `);
 
-// Add stripe_session_id column if DB existed without it
+// Add columns if DB existed without them
 try { db.exec('ALTER TABLE reservations ADD COLUMN stripe_session_id TEXT'); } catch {}
+try { db.exec('ALTER TABLE reservations ADD COLUMN payment_intent_id TEXT'); } catch {}
 
 // ── Webhook (raw body — must come BEFORE express.json()) ─────────────────────
 app.post('/api/webhook', express.raw({ type: 'application/json' }), (req, res) => {
@@ -176,7 +177,9 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), (req, res) =
     const rid = session.metadata?.reservation_id;
     if (rid) {
       const reservationId = parseInt(rid);
-      db.prepare('UPDATE reservations SET stato = ? WHERE id = ?').run('confermata', reservationId);
+      const paymentIntentId = session.payment_intent || null;
+      db.prepare('UPDATE reservations SET stato = ?, payment_intent_id = ? WHERE id = ?')
+        .run('confermata', paymentIntentId, reservationId);
       const reservation = db.prepare('SELECT * FROM reservations WHERE id = ?').get(reservationId);
       if (reservation) sendConfirmationEmail(reservation).catch(console.error);
     }
@@ -285,6 +288,79 @@ app.post('/api/admin/send-confirmation/:id', authAdmin, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// ── Admin: Conferma manuale ───────────────────────────────────────────────────
+app.post('/api/admin/confirm/:id', authAdmin, async (req, res) => {
+  const reservation = db.prepare('SELECT * FROM reservations WHERE id = ?').get(req.params.id);
+  if (!reservation) return res.status(404).json({ error: 'Prenotazione non trovata.' });
+  if (reservation.stato === 'confermata') return res.status(400).json({ error: 'Già confermata.' });
+
+  let paymentIntentId = reservation.payment_intent_id;
+
+  // Verifica pagamento su Stripe se abbiamo la session ID
+  if (stripe && reservation.stripe_session_id && !paymentIntentId) {
+    try {
+      const session = await stripe.checkout.sessions.retrieve(reservation.stripe_session_id);
+      if (session.payment_status !== 'paid') {
+        return res.status(402).json({ error: 'Pagamento non ancora ricevuto su Stripe.' });
+      }
+      paymentIntentId = session.payment_intent || null;
+    } catch (e) {
+      console.error('Stripe session retrieve error:', e.message);
+    }
+  }
+
+  db.prepare('UPDATE reservations SET stato = ?, payment_intent_id = ? WHERE id = ?')
+    .run('confermata', paymentIntentId, reservation.id);
+
+  try {
+    const updated = db.prepare('SELECT * FROM reservations WHERE id = ?').get(reservation.id);
+    await sendConfirmationEmail(updated);
+  } catch (e) {
+    console.error('Email error on confirm:', e.message);
+  }
+
+  res.json({ success: true });
+});
+
+// ── Admin: Rifiuta + rimborso Stripe ─────────────────────────────────────────
+app.post('/api/admin/reject/:id', authAdmin, async (req, res) => {
+  const reservation = db.prepare('SELECT * FROM reservations WHERE id = ?').get(req.params.id);
+  if (!reservation) return res.status(404).json({ error: 'Prenotazione non trovata.' });
+  if (reservation.stato === 'annullata') return res.status(400).json({ error: 'Già annullata.' });
+
+  let refundId = null;
+  let refundError = null;
+
+  if (stripe) {
+    let paymentIntentId = reservation.payment_intent_id;
+
+    // Cerca payment_intent dalla session Stripe se non lo abbiamo
+    if (!paymentIntentId && reservation.stripe_session_id) {
+      try {
+        const session = await stripe.checkout.sessions.retrieve(reservation.stripe_session_id);
+        if (session.payment_status === 'paid') {
+          paymentIntentId = session.payment_intent;
+        }
+      } catch (e) {
+        refundError = 'Impossibile recuperare sessione Stripe: ' + e.message;
+      }
+    }
+
+    if (paymentIntentId) {
+      try {
+        const refund = await stripe.refunds.create({ payment_intent: paymentIntentId });
+        refundId = refund.id;
+      } catch (e) {
+        refundError = 'Rimborso Stripe fallito: ' + e.message;
+        console.error('Stripe refund error:', e.message);
+      }
+    }
+  }
+
+  db.prepare("UPDATE reservations SET stato = 'annullata' WHERE id = ?").run(reservation.id);
+  res.json({ success: true, refund_id: refundId, refund_error: refundError });
 });
 
 // ── Admin API ─────────────────────────────────────────────────────────────────

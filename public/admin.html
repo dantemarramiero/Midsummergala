@@ -256,7 +256,18 @@
       transition: all .2s;
     }
     .action-btn:hover { color: var(--cream); border-color: rgba(255,255,255,.3); }
-    .action-btn.del:hover { color: var(--red); border-color: var(--red); }
+    .action-btn.del:hover  { color: var(--red);   border-color: var(--red); }
+    .action-btn.confirm    { border-color: rgba(76,175,132,.35); color: var(--green); }
+    .action-btn.confirm:hover { background: rgba(76,175,132,.15); border-color: var(--green); }
+    .action-btn.reject     { border-color: rgba(224,85,85,.3); color: var(--red); }
+    .action-btn.reject:hover  { background: rgba(224,85,85,.12); border-color: var(--red); }
+    .action-btn:disabled   { opacity: .3; cursor: not-allowed; }
+
+    .pay-badge { font-size: .7rem; letter-spacing: .06em; }
+    .pay-paid   { color: var(--green); }
+    .pay-wait   { color: var(--gold); }
+    .pay-none   { color: var(--muted); }
+    .pay-ref    { color: var(--red); }
 
     .empty-state {
       text-align: center; padding: 4rem 2rem; opacity: .4;
@@ -359,11 +370,11 @@
               <th>Email</th>
               <th>Telefono</th>
               <th>Tipo</th>
-              <th>Biglietti</th>
+              <th>Pagamento</th>
               <th>Stato</th>
               <th>Note</th>
               <th>Data</th>
-              <th></th>
+              <th>Azioni</th>
             </tr>
           </thead>
           <tbody id="table-body">
@@ -489,31 +500,43 @@ function renderTable(rows) {
     return d.toLocaleDateString('it-IT', { day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit' });
   };
 
+  const payBadge = r => {
+    if (r.stato === 'confermata')
+      return `<span class="pay-badge pay-paid">✓ Pagato</span>`;
+    if (r.stato === 'annullata' && r.payment_intent_id)
+      return `<span class="pay-badge pay-ref">↩ Rimborsato</span>`;
+    if (r.stato === 'annullata')
+      return `<span class="pay-badge pay-none">— Annullata</span>`;
+    if (r.stripe_session_id)
+      return `<span class="pay-badge pay-wait">⏳ In attesa</span>`;
+    return `<span class="pay-badge pay-none">—</span>`;
+  };
+
+  const actionsBtns = r => {
+    if (r.stato === 'annullata') return `<button class="action-btn del" onclick="deleteRow(${r.id})" title="Elimina">✕</button>`;
+    const confirmBtn = r.stato !== 'confermata'
+      ? `<button class="action-btn confirm" onclick="confirmRes(${r.id})" title="Conferma e invia email">✓ Conferma</button>`
+      : `<button class="action-btn confirm" disabled>✓ Confermata</button>`;
+    const rejectBtn = `<button class="action-btn reject" onclick="rejectRes(${r.id})" title="Rifiuta e rimborsa">✕ Rifiuta</button>`;
+    const delBtn = `<button class="action-btn del" onclick="deleteRow(${r.id})" title="Elimina">🗑</button>`;
+    return confirmBtn + rejectBtn + delBtn;
+  };
+
   tbody.innerHTML = rows.map(r => `
-    <tr>
+    <tr id="row-${r.id}">
       <td class="td-id">#${String(r.id).padStart(4,'0')}</td>
       <td class="td-name">${esc(r.nome)} ${esc(r.cognome)}</td>
       <td class="td-email">${esc(r.email)}</td>
       <td class="td-phone">${esc(r.telefono || '—')}</td>
       <td>${typeBadge(r.tipo_biglietto)}</td>
-      <td style="text-align:center">${r.numero_biglietti}</td>
-      <td>
-        <select class="stato-badge stato-${r.stato} stato-select"
-          onchange="updateStato(${r.id}, this)">
-          <option value="confermata" ${r.stato==='confermata'?'selected':''}>✓ Confermata</option>
-          <option value="in_attesa"  ${r.stato==='in_attesa' ?'selected':''}>⏳ In attesa</option>
-          <option value="annullata"  ${r.stato==='annullata' ?'selected':''}>✕ Annullata</option>
-        </select>
-      </td>
-      <td class="td-email" style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"
+      <td>${payBadge(r)}</td>
+      <td><span class="stato-badge stato-${r.stato}">${
+        {confermata:'✓ Confermata', in_attesa:'⏳ In attesa', annullata:'✕ Annullata'}[r.stato] || r.stato
+      }</span></td>
+      <td class="td-email" style="max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"
           title="${esc(r.note || '')}">${esc(r.note || '—')}</td>
       <td class="td-date">${fmtDate(r.created_at)}</td>
-      <td>
-        <div class="actions-cell">
-          <button class="action-btn" onclick="sendEmail(${r.id})" title="Invia email di conferma">✉</button>
-          <button class="action-btn del" onclick="deleteRow(${r.id})" title="Elimina">✕</button>
-        </div>
-      </td>
+      <td><div class="actions-cell">${actionsBtns(r)}</div></td>
     </tr>
   `).join('');
 }
@@ -530,22 +553,59 @@ function setFilter(type) {
 }
 
 // ── ACTIONS ──────────────────────────────────────────────────────────────────
-async function updateStato(id, select) {
-  const stato = select.value;
-  // Update class
-  select.className = `stato-badge stato-${stato} stato-select`;
-  await fetch(`/api/admin/reservations/${id}?key=${encodeURIComponent(adminKey)}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ stato })
-  });
+async function confirmRes(id) {
+  if (!confirm(`Confermare la prenotazione #${String(id).padStart(4,'0')}?\nVerrà inviata automaticamente l'email di conferma al cliente.`)) return;
+  const btn = document.querySelector(`#row-${id} .action-btn.confirm`);
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+  const res  = await fetch(`/api/admin/confirm/${id}?key=${encodeURIComponent(adminKey)}`, { method: 'POST' });
+  const data = await res.json();
+  if (res.ok) {
+    showToast('✓ Prenotazione confermata e email inviata!', 'green');
+    loadAll();
+  } else {
+    showToast('✗ ' + data.error, 'red');
+    if (btn) { btn.disabled = false; btn.textContent = '✓ Conferma'; }
+  }
 }
 
-async function sendEmail(id) {
-  const res = await fetch(`/api/admin/send-confirmation/${id}?key=${encodeURIComponent(adminKey)}`, { method: 'POST' });
+async function rejectRes(id) {
+  if (!confirm(`Rifiutare la prenotazione #${String(id).padStart(4,'0')}?\nSe il pagamento è stato ricevuto verrà emesso un rimborso automatico su Stripe.`)) return;
+  const btn = document.querySelector(`#row-${id} .action-btn.reject`);
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+  const res  = await fetch(`/api/admin/reject/${id}?key=${encodeURIComponent(adminKey)}`, { method: 'POST' });
   const data = await res.json();
-  if (res.ok) alert('✓ Email di conferma inviata!');
-  else alert('Errore: ' + data.error);
+  if (res.ok) {
+    const msg = data.refund_id
+      ? `✓ Prenotazione annullata. Rimborso Stripe emesso: ${data.refund_id}`
+      : data.refund_error
+        ? `✓ Annullata. ⚠ Rimborso: ${data.refund_error}`
+        : '✓ Prenotazione annullata (nessun pagamento da rimborsare).';
+    showToast(msg, data.refund_error ? 'gold' : 'green');
+    loadAll();
+  } else {
+    showToast('✗ ' + data.error, 'red');
+    if (btn) { btn.disabled = false; btn.textContent = '✕ Rifiuta'; }
+  }
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+function showToast(msg, type = 'green') {
+  let t = document.getElementById('toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast';
+    t.style.cssText = 'position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);padding:.75rem 1.5rem;border-radius:8px;font-size:.85rem;font-family:Jost,sans-serif;z-index:999;max-width:90vw;text-align:center;transition:opacity .4s;';
+    document.body.appendChild(t);
+  }
+  const colors = { green: '#0b1a10', red: '#1a0b0b', gold: '#1a1500' };
+  const borders = { green: '#4caf84', red: '#e05555', gold: '#c9a84c' };
+  t.style.background  = colors[type]  || colors.green;
+  t.style.border      = `1px solid ${borders[type] || borders.green}`;
+  t.style.color       = borders[type] || borders.green;
+  t.style.opacity     = '1';
+  t.textContent       = msg;
+  clearTimeout(t._timeout);
+  t._timeout = setTimeout(() => { t.style.opacity = '0'; }, 4000);
 }
 
 async function deleteRow(id) {
