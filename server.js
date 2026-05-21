@@ -11,7 +11,19 @@ const STRIPE_SECRET    = process.env.STRIPE_SECRET_KEY;
 const WEBHOOK_SECRET   = process.env.STRIPE_WEBHOOK_SECRET;
 const DB_PATH = path.join(__dirname, 'gala.db');
 
-const stripe = STRIPE_SECRET ? require('stripe')(STRIPE_SECRET) : null;
+const https  = require('https');
+const stripe = STRIPE_SECRET ? require('stripe')(STRIPE_SECRET, {
+  httpAgent: new https.Agent({ keepAlive: false })
+}) : null;
+
+// Test connessione a Stripe all'avvio
+if (STRIPE_SECRET) {
+  https.get('https://api.stripe.com/', (res) => {
+    console.log('  Rete Stripe     →', res.statusCode === 200 ? '✓ raggiungibile' : `HTTP ${res.statusCode}`);
+  }).on('error', (err) => {
+    console.error('  Rete Stripe     → ✗ ERRORE:', err.message, '| code:', err.code);
+  });
+}
 
 // ── Email ─────────────────────────────────────────────────────────────────────
 const { Resend } = require('resend');
