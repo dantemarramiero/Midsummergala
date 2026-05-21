@@ -12,8 +12,9 @@ const WEBHOOK_SECRET   = process.env.STRIPE_WEBHOOK_SECRET;
 const DB_PATH = path.join(__dirname, 'gala.db');
 
 const https  = require('https');
-const stripe = STRIPE_SECRET ? require('stripe')(STRIPE_SECRET, {
-  httpAgent: new https.Agent({ keepAlive: false })
+const Stripe = require('stripe');
+const stripe = STRIPE_SECRET ? new Stripe(STRIPE_SECRET, {
+  httpClient: Stripe.createNodeHttpClient(new https.Agent({ keepAlive: false }))
 }) : null;
 
 // Test connessione a Stripe all'avvio
