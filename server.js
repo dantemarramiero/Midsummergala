@@ -363,6 +363,31 @@ app.post('/api/admin/reject/:id', authAdmin, async (req, res) => {
   res.json({ success: true, refund_id: refundId, refund_error: refundError });
 });
 
+// ── Admin: Inserimento manuale ────────────────────────────────────────────────
+app.post('/api/admin/reservations/manual', authAdmin, async (req, res) => {
+  const { nome, cognome, email, telefono, tipo_biglietto, stato, note, send_email } = req.body || {};
+  if (!nome?.trim() || !cognome?.trim() || !email?.trim()) {
+    return res.status(400).json({ error: 'Nome, cognome e email sono obbligatori.' });
+  }
+  if (!['standard', 'navetta'].includes(tipo_biglietto)) {
+    return res.status(400).json({ error: 'Tipo biglietto non valido.' });
+  }
+  const statoVal = ['confermata', 'in_attesa'].includes(stato) ? stato : 'confermata';
+  const result = db.prepare(`
+    INSERT INTO reservations (nome, cognome, email, telefono, tipo_biglietto, numero_biglietti, note, stato)
+    VALUES (?, ?, ?, ?, ?, 1, ?, ?)
+  `).run(nome.trim(), cognome.trim(), email.toLowerCase().trim(),
+         telefono?.trim() || null, tipo_biglietto, note?.trim() || null, statoVal);
+
+  const reservation = db.prepare('SELECT * FROM reservations WHERE id = ?').get(result.lastInsertRowid);
+
+  if (send_email && statoVal === 'confermata') {
+    try { await sendConfirmationEmail(reservation); } catch (e) { console.error('Email manual:', e.message); }
+  }
+
+  res.json({ success: true, id: reservation.id });
+});
+
 // ── Admin API ─────────────────────────────────────────────────────────────────
 function authAdmin(req, res, next) {
   const pwd = req.query.key || req.headers['x-admin-key'];
