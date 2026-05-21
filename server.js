@@ -256,6 +256,9 @@ app.post('/api/create-checkout-session', async (req, res) => {
   } catch (err) {
     // Roll back pending reservation on Stripe error
     db.prepare('DELETE FROM reservations WHERE id = ?').run(reservationId);
+    console.error('STRIPE ERROR type:', err.type);
+    console.error('STRIPE ERROR code:', err.code);
+    console.error('STRIPE ERROR message:', err.message);
     res.status(500).json({ error: 'Errore Stripe: ' + err.message });
   }
 });
