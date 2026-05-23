@@ -536,7 +536,7 @@ body.modal-open { overflow: hidden; }
    HOTEL
 ============================================================ */
 .hotel-grid {
-  display: grid; grid-template-columns: 1fr 1fr;
+  display: grid; grid-template-columns: repeat(3, 1fr);
   gap: 32px; padding: 56px 0;
 }
 .hotel-card {
@@ -579,7 +579,8 @@ body.modal-open { overflow: hidden; }
   font-family: var(--font-display); font-size: 17px; line-height: 1.5;
 }
 .hotel-book-link:hover { color: var(--accent-soft); }
-@media (max-width:900px) { .hotel-grid { grid-template-columns: 1fr; gap: 20px; } }
+@media (max-width:1100px) { .hotel-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width:600px)  { .hotel-grid { grid-template-columns: 1fr; gap: 20px; } }
 @media (max-width:580px) { .hotel-card { padding: 28px 20px; } }
 
 /* ============================================================
@@ -954,6 +955,29 @@ body.modal-open { overflow: hidden; }
         <div class="hotel-book">
           <span class="hotel-book-label">Come prenotare</span>
           <a href="tel:+393475857724" class="hotel-book-link">Francesca Ucci — +39 347 585 7724</a>
+        </div>
+      </div>
+
+      <!-- Fonte Riccione -->
+      <div class="hotel-card">
+        <div class="hotel-card-header">
+          <div>
+            <div class="hotel-name">Fonte Riccione</div>
+            <div class="hotel-tag">🌿 Agriturismo · A piedi dalla Cantina</div>
+          </div>
+        </div>
+        <p class="hotel-desc">
+          Agriturismo immerso nella natura, a due passi a piedi dalla Tenuta Marramiero. La scelta ideale per vivere l'atmosfera rurale abruzzese.
+        </p>
+        <div class="hotel-rates">
+          <div class="rate-row"><span>Camera Matrimoniale</span><span>€ 80 / notte</span></div>
+          <div class="rate-row rate-extra" style="padding-left:16px;"><span style="font-size:12px;opacity:0.7;">Solo pernotto</span><span></span></div>
+          <div class="rate-row"><span>Camera Matrimoniale</span><span>€ 90 / notte</span></div>
+          <div class="rate-row rate-extra" style="padding-left:16px;"><span style="font-size:12px;opacity:0.7;">Con colazione inclusa</span><span></span></div>
+        </div>
+        <div class="hotel-book">
+          <span class="hotel-book-label">Come prenotare</span>
+          <a href="tel:+393933565540" class="hotel-book-link">Valentina — +39 393 356 5540</a>
         </div>
       </div>
 
