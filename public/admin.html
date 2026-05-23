@@ -267,6 +267,8 @@
     .action-btn.confirm:hover { background: rgba(76,175,132,.15); border-color: var(--green); }
     .action-btn.reject     { border-color: rgba(224,85,85,.3); color: var(--red); }
     .action-btn.reject:hover  { background: rgba(224,85,85,.12); border-color: var(--red); }
+    .action-btn.email      { border-color: rgba(44,82,130,.3); color: var(--blue); }
+    .action-btn.email:hover   { background: rgba(44,82,130,.1); border-color: var(--blue); }
     .action-btn:disabled   { opacity: .3; cursor: not-allowed; }
 
     .pay-badge { font-size: .7rem; letter-spacing: .06em; }
@@ -625,13 +627,14 @@ function renderTable(rows) {
   };
 
   const actionsBtns = r => {
-    if (r.stato === 'annullata') return `<button class="action-btn del" onclick="deleteRow(${r.id})" title="Elimina">✕</button>`;
+    if (r.stato === 'annullata') return `<button class="action-btn del" onclick="deleteRow(${r.id})" title="Elimina">🗑</button>`;
     const confirmBtn = r.stato !== 'confermata'
       ? `<button class="action-btn confirm" onclick="confirmRes(${r.id})" title="Conferma e invia email">✓ Conferma</button>`
       : `<button class="action-btn confirm" disabled>✓ Confermata</button>`;
     const rejectBtn = `<button class="action-btn reject" onclick="rejectRes(${r.id})" title="Rifiuta e rimborsa">✕ Rifiuta</button>`;
-    const delBtn = `<button class="action-btn del" onclick="deleteRow(${r.id})" title="Elimina">🗑</button>`;
-    return confirmBtn + rejectBtn + delBtn;
+    const emailBtn  = `<button class="action-btn email" onclick="resendEmail(${r.id})" title="Reinvia email di conferma">✉</button>`;
+    const delBtn    = `<button class="action-btn del" onclick="deleteRow(${r.id})" title="Elimina">🗑</button>`;
+    return confirmBtn + rejectBtn + emailBtn + delBtn;
   };
 
   tbody.innerHTML = rows.map(r => `
@@ -718,6 +721,19 @@ function showToast(msg, type = 'green') {
   t.textContent       = msg;
   clearTimeout(t._timeout);
   t._timeout = setTimeout(() => { t.style.opacity = '0'; }, 4000);
+}
+
+async function resendEmail(id) {
+  const btn = document.querySelector(`#row-${id} .action-btn.email`);
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+  const res  = await fetch(`/api/admin/send-confirmation/${id}?key=${encodeURIComponent(adminKey)}`, { method: 'POST' });
+  const data = await res.json();
+  if (res.ok) {
+    showToast('✉ Email di conferma inviata!', 'green');
+  } else {
+    showToast('✗ ' + data.error, 'red');
+  }
+  if (btn) { btn.disabled = false; btn.textContent = '✉'; }
 }
 
 async function deleteRow(id) {
