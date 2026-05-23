@@ -533,6 +533,51 @@ body.modal-open { overflow: hidden; }
 }
 
 /* ============================================================
+   COME RAGGIUNGERCI
+============================================================ */
+.raggiungerci-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 32px; padding: 56px 0;
+}
+.travel-card {
+  padding: 40px; border: 1px solid var(--hairline);
+  display: flex; flex-direction: column; gap: 20px;
+  background: var(--base);
+}
+.travel-card-top { display: flex; align-items: center; gap: 16px; }
+.travel-card-icon {
+  width: 52px; height: 52px; background: var(--istituzionale);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; flex-shrink: 0;
+}
+.travel-card-name {
+  font-family: var(--font-display); font-size: 28px;
+  font-weight: 400; color: var(--ink); line-height: 1.1;
+}
+.travel-card-provider {
+  font-size: 12px; color: var(--accent); margin-top: 4px; letter-spacing: 0.05em;
+}
+.travel-route {
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px 0; border-top: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline);
+}
+.travel-route-city {
+  font-family: var(--font-display); font-size: 19px; font-weight: 400; color: var(--ink);
+  display: flex; flex-direction: column; gap: 3px;
+}
+.travel-route-label { font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--ink-faint); font-weight: 500; }
+.travel-route-arrow {
+  color: var(--accent); font-size: 20px; flex: 1; text-align: center;
+}
+.travel-date-tag {
+  font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase;
+  color: var(--accent); font-weight: 500;
+}
+.travel-desc { font-size: 13px; line-height: 1.7; color: var(--ink-soft); margin: 0; flex: 1; }
+@media (max-width:720px) { .raggiungerci-grid { grid-template-columns: 1fr; gap: 20px; } }
+@media (max-width:580px) { .travel-card { padding: 28px 20px; } }
+
+/* ============================================================
    HOTEL
 ============================================================ */
 .hotel-grid {
@@ -695,6 +740,7 @@ body.modal-open { overflow: hidden; }
     <li><a href="#serata">La Serata</a></li>
     <li><a href="#biglietti">Biglietti</a></li>
     <li><a href="#hotel">Hotel</a></li>
+    <li><a href="#raggiungerci">Arrivare</a></li>
     <li><a href="#prenotazione" class="btn nav-cta">Prenota <span class="arrow"></span></a></li>
   </ul>
 </nav>
@@ -979,6 +1025,87 @@ body.modal-open { overflow: hidden; }
           <span class="hotel-book-label">Come prenotare</span>
           <a href="tel:+393933565540" class="hotel-book-link">Valentina — +39 393 356 5540</a>
         </div>
+      </div>
+
+    </div>
+    <div class="hairline" style="margin-top:0;"></div>
+  </div>
+</section>
+
+<!-- ── COME RAGGIUNGERCI ─────────────────────────────────────────────────── -->
+<section id="raggiungerci">
+  <div class="wrap">
+    <div class="fade-up" style="margin-bottom:56px;">
+      <span class="eyebrow" style="display:block;margin-bottom:20px;">Logistica</span>
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;">
+        <h2 class="display" style="font-size:clamp(40px,5.5vw,72px);margin:0;">
+          Come <em>Raggiungerci</em>
+        </h2>
+        <p style="max-width:340px;font-size:13px;line-height:1.7;color:var(--ink-soft);text-align:right;">
+          Tratta Milano → Pescara · 4 Luglio 2026.<br>Prenota il viaggio in anticipo per le migliori tariffe.
+        </p>
+      </div>
+    </div>
+    <div class="hairline"></div>
+
+    <div class="raggiungerci-grid fade-up">
+
+      <!-- Volo Skyscanner -->
+      <div class="travel-card">
+        <div class="travel-card-top">
+          <div class="travel-card-icon">✈️</div>
+          <div>
+            <div class="travel-card-name">Volo</div>
+            <div class="travel-card-provider">Cerca su Skyscanner</div>
+          </div>
+        </div>
+        <div class="travel-route">
+          <div class="travel-route-city">
+            <span class="travel-route-label">Da</span>
+            <span>Milano</span>
+          </div>
+          <div class="travel-route-arrow">→</div>
+          <div class="travel-route-city">
+            <span class="travel-route-label">A</span>
+            <span>Pescara</span>
+          </div>
+        </div>
+        <div class="travel-date-tag">📅 &nbsp;4 Luglio 2026</div>
+        <p class="travel-desc">Confronta tutte le compagnie aeree e trova il volo migliore per Pescara (PSR). L'aeroporto dista circa 20 minuti dalla Tenuta Marramiero.</p>
+        <a href="https://www.skyscanner.it/trasporti/voli/mil/psr/260704/?adults=1&adultsv2=1&cabinclass=economy&children=0&infants=0&rtn=0"
+           target="_blank" rel="noopener noreferrer"
+           class="btn btn--gold" style="width:100%;justify-content:center;margin-top:auto;">
+          Cerca voli <span class="arrow"></span>
+        </a>
+      </div>
+
+      <!-- Treno Trenitalia -->
+      <div class="travel-card">
+        <div class="travel-card-top">
+          <div class="travel-card-icon">🚄</div>
+          <div>
+            <div class="travel-card-name">Treno</div>
+            <div class="travel-card-provider">Cerca su Trenitalia</div>
+          </div>
+        </div>
+        <div class="travel-route">
+          <div class="travel-route-city">
+            <span class="travel-route-label">Da</span>
+            <span>Milano C.le</span>
+          </div>
+          <div class="travel-route-arrow">→</div>
+          <div class="travel-route-city">
+            <span class="travel-route-label">A</span>
+            <span>Pescara C.le</span>
+          </div>
+        </div>
+        <div class="travel-date-tag">📅 &nbsp;4 Luglio 2026</div>
+        <p class="travel-desc">Collegamento diretto da Milano Centrale a Pescara Centrale. La navetta Midsummer Gala parte alle 18:00 direttamente dalla Stazione di Pescara.</p>
+        <a href="https://www.trenitalia.com/it/html/trenitalia/Biglietti-e-prenotazioni/acquisto-online.html"
+           target="_blank" rel="noopener noreferrer"
+           class="btn" style="width:100%;justify-content:center;margin-top:auto;">
+          Cerca treni <span class="arrow"></span>
+        </a>
       </div>
 
     </div>
