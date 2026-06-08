@@ -359,17 +359,21 @@
 
     /* ── RESPONSIVE ─────────────────────────────────────────── */
     @media (max-width: 768px) {
-      .stats-grid { grid-template-columns: 1fr 1fr; }
-      main { padding: 1rem; }
-      header { padding: .8rem 1rem; }
+      body { overflow-x: hidden; }
+      .stats-grid { grid-template-columns: 1fr 1fr; gap: .6rem; }
+      .stat-card { padding: 1rem; }
+      .stat-value { font-size: 2rem; }
+      main { padding: .75rem; }
+      header { padding: .75rem 1rem; }
       .header-actions .export-btn:not(:first-child) { display: none; }
-      .toolbar { gap: .6rem; }
+      .toolbar { gap: .5rem; }
       .filter-tabs { font-size: .7rem; }
-      .tab-btn { padding: .35rem .8rem; font-size: .68rem; }
+      .tab-btn { padding: .3rem .7rem; font-size: .68rem; }
+      .search-box { min-width: 0; font-size: .8rem; }
 
       /* Nascondi tabella, mostra cards */
       .table-scroll { display: none; }
-      .cards-list { display: flex; flex-direction: column; gap: .75rem; padding: 1rem; }
+      .cards-list { display: flex; flex-direction: column; gap: .6rem; padding: .75rem; }
     }
     @media (min-width: 769px) {
       .cards-list { display: none; }
@@ -380,8 +384,9 @@
       background: var(--bg);
       border: 1px solid rgba(36,26,37,.1);
       border-radius: 10px;
-      padding: 1rem;
-      display: flex; flex-direction: column; gap: .6rem;
+      padding: .85rem;
+      display: flex; flex-direction: column; gap: .55rem;
+      box-sizing: border-box; width: 100%;
     }
     .res-card-top {
       display: flex; align-items: center;
