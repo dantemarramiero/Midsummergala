@@ -362,6 +362,43 @@
       .stats-grid { grid-template-columns: 1fr 1fr; }
       main { padding: 1rem; }
       header { padding: .8rem 1rem; }
+      .header-actions .export-btn:not(:first-child) { display: none; }
+      .toolbar { gap: .6rem; }
+      .filter-tabs { font-size: .7rem; }
+      .tab-btn { padding: .35rem .8rem; font-size: .68rem; }
+
+      /* Nascondi tabella, mostra cards */
+      .table-scroll { display: none; }
+      .cards-list { display: flex; flex-direction: column; gap: .75rem; padding: 1rem; }
+    }
+    @media (min-width: 769px) {
+      .cards-list { display: none; }
+    }
+
+    /* ── RESERVATION CARDS (mobile) ─────────────────────────── */
+    .res-card {
+      background: var(--bg);
+      border: 1px solid rgba(36,26,37,.1);
+      border-radius: 10px;
+      padding: 1rem;
+      display: flex; flex-direction: column; gap: .6rem;
+    }
+    .res-card-top {
+      display: flex; align-items: center;
+      justify-content: space-between; gap: .5rem;
+    }
+    .res-card-name {
+      font-weight: 500; font-size: .95rem; color: var(--cream);
+    }
+    .res-card-id { font-size: .72rem; color: var(--muted); font-family: monospace; }
+    .res-card-row {
+      display: flex; align-items: center;
+      justify-content: space-between; gap: .5rem;
+      font-size: .8rem; color: var(--muted);
+    }
+    .res-card-email { font-size: .78rem; color: var(--muted); word-break: break-all; }
+    .res-card-actions {
+      display: flex; gap: .4rem; flex-wrap: wrap; margin-top: .25rem;
     }
   </style>
 </head>
@@ -445,6 +482,8 @@
           </tbody>
         </table>
       </div>
+      <!-- Mobile cards -->
+      <div class="cards-list" id="cards-list"></div>
     </div>
   </main>
 </div>
@@ -670,6 +709,33 @@ function renderTable(rows) {
       <td class="td-date">${fmtDate(r.created_at)}</td>
       <td><div class="actions-cell">${actionsBtns(r)}</div></td>
     </tr>
+  `).join('');
+
+  // Mobile cards
+  const cardsList = document.getElementById('cards-list');
+  if (!rows.length) {
+    cardsList.innerHTML = `<div style="text-align:center;padding:3rem;opacity:.4;"><div style="font-size:2rem">🌙</div><p>Nessuna prenotazione.</p></div>`;
+    return;
+  }
+  cardsList.innerHTML = rows.map(r => `
+    <div class="res-card" id="card-${r.id}">
+      <div class="res-card-top">
+        <div>
+          <div class="res-card-name">${esc(r.nome)} ${esc(r.cognome)}</div>
+          <div class="res-card-id">#${String(r.id).padStart(4,'0')} · ${fmtDate(r.created_at)}</div>
+        </div>
+        ${typeBadge(r.tipo_biglietto)}
+      </div>
+      <div class="res-card-email">${esc(r.email)}${r.telefono ? ' · ' + esc(r.telefono) : ''}</div>
+      <div class="res-card-row">
+        ${payBadge(r)}
+        <span class="stato-badge stato-${r.stato}">${
+          {confermata:'✓ Confermata', in_attesa:'⏳ In attesa', annullata:'✕ Annullata'}[r.stato] || r.stato
+        }</span>
+      </div>
+      ${r.note ? `<div style="font-size:.75rem;color:var(--muted);font-style:italic;">${esc(r.note)}</div>` : ''}
+      <div class="res-card-actions">${actionsBtns(r)}</div>
+    </div>
   `).join('');
 }
 
