@@ -8,6 +8,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { overflow-x: hidden; max-width: 100vw; }
+    html, body { width: 100%; }
     :root {
       --bg:      #f4f0e8;
       --bg2:     #ffffff;
@@ -24,7 +26,7 @@
       --radius:  10px;
       --hairline: rgba(36,26,37,0.1);
     }
-    html, body { height: 100%; }
+    html, body { height: 100%; overflow-x: hidden; }
     body {
       background: var(--bg);
       color: var(--cream);
@@ -32,6 +34,7 @@
       font-weight: 400;
       display: flex; flex-direction: column;
       min-height: 100vh;
+      max-width: 100vw;
     }
 
     /* ── LOGIN ──────────────────────────────────────────────── */
@@ -202,6 +205,7 @@
       border-radius: var(--radius);
       overflow: hidden;
       box-shadow: 0 1px 8px rgba(36,26,37,.05);
+      max-width: 100%;
     }
     .table-count {
       padding: .9rem 1.5rem;
