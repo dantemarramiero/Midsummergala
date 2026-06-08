@@ -452,7 +452,7 @@
   <div class="login-card">
     <h1>Midsummer Gala</h1>
     <p>Pannello Amministratore</p>
-    <input type="password" id="pwd-input" placeholder="Password" onkeydown="if(event.key==='Enter') doLogin()" />
+    <input type="password" id="pwd-input" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter') doLogin()" />
     <button class="login-btn" onclick="doLogin()">Accedi</button>
     <div class="login-error" id="login-error"></div>
   </div>
@@ -589,20 +589,20 @@ let adminKey = '';
 let currentFilter = 'all';
 
 // ── LOGIN ────────────────────────────────────────────────────────────────────
-// Support ?key=xxx in URL for direct link
+// Auto-login: controlla URL, poi localStorage
 (function () {
   const params = new URLSearchParams(location.search);
-  const k = params.get('key');
+  const k = params.get('key') || localStorage.getItem('mgala_key');
   if (k) { adminKey = k; showApp(); }
 })();
 
 async function doLogin() {
   const pwd = document.getElementById('pwd-input').value.trim();
   if (!pwd) return;
-  // Verify key by calling stats endpoint
   const res = await fetch(`/api/admin/stats?key=${encodeURIComponent(pwd)}`);
   if (res.ok) {
     adminKey = pwd;
+    localStorage.setItem('mgala_key', pwd);
     showApp();
   } else {
     document.getElementById('login-error').textContent = 'Password non corretta.';
@@ -623,6 +623,7 @@ function showApp() {
 
 function doLogout() {
   adminKey = '';
+  localStorage.removeItem('mgala_key');
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('app').style.display = 'none';
 }
