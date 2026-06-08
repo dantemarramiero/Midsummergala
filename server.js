@@ -191,6 +191,27 @@ db.exec(`
 // Add columns if DB existed without them
 try { db.exec('ALTER TABLE reservations ADD COLUMN stripe_session_id TEXT'); } catch {}
 try { db.exec('ALTER TABLE reservations ADD COLUMN payment_intent_id TEXT'); } catch {}
+try { db.exec('ALTER TABLE reservations ADD COLUMN stripe_payment_status TEXT'); } catch {}
+
+// ── Admin: Sync pagamenti da Stripe ──────────────────────────────────────────
+async function syncStripePayments() {
+  if (!stripe) return { synced: 0, total: 0 };
+  const pending = db.prepare(
+    "SELECT id, stripe_session_id FROM reservations WHERE stripe_session_id IS NOT NULL AND stripe_payment_status IS NULL OR stripe_payment_status = 'unpaid'"
+  ).all();
+  let synced = 0;
+  for (const r of pending) {
+    try {
+      const session = await stripe.checkout.sessions.retrieve(r.stripe_session_id);
+      const ps = session.payment_status;
+      const pi = session.payment_intent || null;
+      db.prepare('UPDATE reservations SET stripe_payment_status = ?, payment_intent_id = COALESCE(payment_intent_id, ?) WHERE id = ?')
+        .run(ps, pi, r.id);
+      if (ps === 'paid') synced++;
+    } catch {}
+  }
+  return { synced, total: pending.length };
+}
 
 // ── Webhook (raw body — must come BEFORE express.json()) ─────────────────────
 app.post('/api/webhook', express.raw({ type: 'application/json' }), (req, res) => {
@@ -209,8 +230,8 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), (req, res) =
     if (rid) {
       const reservationId = parseInt(rid);
       const paymentIntentId = session.payment_intent || null;
-      db.prepare('UPDATE reservations SET stato = ?, payment_intent_id = ? WHERE id = ?')
-        .run('confermata', paymentIntentId, reservationId);
+      db.prepare('UPDATE reservations SET stato = ?, payment_intent_id = ?, stripe_payment_status = ? WHERE id = ?')
+        .run('confermata', paymentIntentId, 'paid', reservationId);
       const reservation = db.prepare('SELECT * FROM reservations WHERE id = ?').get(reservationId);
       if (reservation) sendConfirmationEmail(reservation).catch(console.error);
     }
@@ -426,6 +447,11 @@ function authAdmin(req, res, next) {
   if (pwd !== ADMIN_PASSWORD) return res.status(401).json({ error: 'Non autorizzato.' });
   next();
 }
+
+app.post('/api/admin/sync-payments', authAdmin, async (req, res) => {
+  const result = await syncStripePayments();
+  res.json(result);
+});
 
 app.get('/api/admin/stats', authAdmin, (req, res) => {
   const byType = db.prepare(`

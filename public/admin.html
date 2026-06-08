@@ -103,7 +103,7 @@
     .header-actions { display: flex; gap: .75rem; align-items: center; }
 
     /* ── MAIN ───────────────────────────────────────────────── */
-    main { flex: 1; padding: 2rem; max-width: 1300px; width: 100%; margin: 0 auto; }
+    main { flex: 1; padding: 2rem; width: 100%; }
 
     /* ── STATS CARDS ────────────────────────────────────────── */
     .stats-grid {
@@ -211,7 +211,7 @@
     }
     .table-scroll { overflow-x: auto; }
 
-    table { width: 100%; border-collapse: collapse; min-width: 700px; }
+    table { width: 100%; border-collapse: collapse; }
     thead th {
       text-align: left;
       font-size: .65rem; letter-spacing: .15em;
@@ -532,6 +532,11 @@ function showApp() {
   document.getElementById('app').style.display = 'flex';
   document.getElementById('app').style.flexDirection = 'column';
   loadAll();
+  // Sync pagamenti Stripe in background
+  fetch(`/api/admin/sync-payments?key=${encodeURIComponent(adminKey)}`, { method: 'POST' })
+    .then(r => r.json())
+    .then(d => { if (d.synced > 0) loadReservations(); })
+    .catch(() => {});
 }
 
 function doLogout() {
@@ -544,6 +549,11 @@ function doLogout() {
 function loadAll() {
   loadStats();
   loadReservations();
+  // Sync pagamenti in background ad ogni refresh
+  fetch(`/api/admin/sync-payments?key=${encodeURIComponent(adminKey)}`, { method: 'POST' })
+    .then(r => r.json())
+    .then(d => { if (d.synced > 0) { loadStats(); loadReservations(); } })
+    .catch(() => {});
 }
 
 async function loadStats() {
@@ -617,14 +627,16 @@ function renderTable(rows) {
   };
 
   const payBadge = r => {
-    if (r.stato === 'confermata')
-      return `<span class="pay-badge pay-paid">✓ Pagato</span>`;
     if (r.stato === 'annullata' && r.payment_intent_id)
       return `<span class="pay-badge pay-ref">↩ Rimborsato</span>`;
     if (r.stato === 'annullata')
       return `<span class="pay-badge pay-none">— Annullata</span>`;
-    if (r.stripe_session_id)
+    if (r.stripe_payment_status === 'paid')
+      return `<span class="pay-badge pay-paid">✓ Pagato</span>`;
+    if (r.stripe_payment_status === 'unpaid' && r.stripe_session_id)
       return `<span class="pay-badge pay-wait">⏳ In attesa</span>`;
+    if (r.stripe_session_id)
+      return `<span class="pay-badge pay-wait">⏳ Verifica…</span>`;
     return `<span class="pay-badge pay-none">—</span>`;
   };
 
