@@ -269,6 +269,8 @@
     .action-btn.reject:hover  { background: rgba(224,85,85,.12); border-color: var(--red); }
     .action-btn.email      { border-color: rgba(44,82,130,.3); color: var(--blue); }
     .action-btn.email:hover   { background: rgba(44,82,130,.1); border-color: var(--blue); }
+    .action-btn.force      { border-color: rgba(154,114,53,.35); color: var(--gold); }
+    .action-btn.force:hover   { background: rgba(154,114,53,.12); border-color: var(--gold); }
     .action-btn:disabled   { opacity: .3; cursor: not-allowed; }
 
     .pay-badge { font-size: .7rem; letter-spacing: .06em; }
@@ -631,10 +633,13 @@ function renderTable(rows) {
     const confirmBtn = r.stato !== 'confermata'
       ? `<button class="action-btn confirm" onclick="confirmRes(${r.id})" title="Conferma e invia email">✓ Conferma</button>`
       : `<button class="action-btn confirm" disabled>✓ Confermata</button>`;
+    const forceBtn = r.stato !== 'confermata'
+      ? `<button class="action-btn force" onclick="forceConfirm(${r.id})" title="Forza conferma (bypass Stripe)">⚡</button>`
+      : '';
     const rejectBtn = `<button class="action-btn reject" onclick="rejectRes(${r.id})" title="Rifiuta e rimborsa">✕ Rifiuta</button>`;
     const emailBtn  = `<button class="action-btn email" onclick="resendEmail(${r.id})" title="Reinvia email di conferma">✉</button>`;
     const delBtn    = `<button class="action-btn del" onclick="deleteRow(${r.id})" title="Elimina">🗑</button>`;
-    return confirmBtn + rejectBtn + emailBtn + delBtn;
+    return confirmBtn + forceBtn + rejectBtn + emailBtn + delBtn;
   };
 
   tbody.innerHTML = rows.map(r => `
@@ -721,6 +726,21 @@ function showToast(msg, type = 'green') {
   t.textContent       = msg;
   clearTimeout(t._timeout);
   t._timeout = setTimeout(() => { t.style.opacity = '0'; }, 4000);
+}
+
+async function forceConfirm(id) {
+  if (!confirm(`Forzare la conferma della prenotazione #${String(id).padStart(4,'0')} senza controllo Stripe?\nUsare solo se il pagamento è stato verificato manualmente.`)) return;
+  const btn = document.querySelector(`#row-${id} .action-btn.force`);
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+  const res  = await fetch(`/api/admin/confirm/${id}?key=${encodeURIComponent(adminKey)}&force=1`, { method: 'POST' });
+  const data = await res.json();
+  if (res.ok) {
+    showToast('⚡ Prenotazione forzata e confermata — email inviata!', 'green');
+    loadAll();
+  } else {
+    showToast('✗ ' + data.error, 'red');
+    if (btn) { btn.disabled = false; btn.textContent = '⚡'; }
+  }
 }
 
 async function resendEmail(id) {

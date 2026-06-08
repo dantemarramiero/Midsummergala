@@ -323,14 +323,15 @@ app.post('/api/admin/send-confirmation/:id', authAdmin, async (req, res) => {
 
 // ── Admin: Conferma manuale ───────────────────────────────────────────────────
 app.post('/api/admin/confirm/:id', authAdmin, async (req, res) => {
+  const force = req.query.force === '1'; // bypass controllo Stripe
   const reservation = db.prepare('SELECT * FROM reservations WHERE id = ?').get(req.params.id);
   if (!reservation) return res.status(404).json({ error: 'Prenotazione non trovata.' });
   if (reservation.stato === 'confermata') return res.status(400).json({ error: 'Già confermata.' });
 
   let paymentIntentId = reservation.payment_intent_id;
 
-  // Verifica pagamento su Stripe se abbiamo la session ID
-  if (stripe && reservation.stripe_session_id && !paymentIntentId) {
+  // Verifica pagamento su Stripe se abbiamo la session ID (skip se force=1)
+  if (!force && stripe && reservation.stripe_session_id && !paymentIntentId) {
     try {
       const session = await stripe.checkout.sessions.retrieve(reservation.stripe_session_id);
       if (session.payment_status !== 'paid') {
