@@ -164,7 +164,49 @@ body.modal-open { overflow: hidden; }
   color: var(--base) !important;
 }
 
-@media (max-width:720px) { .nav { padding: 0 24px; } .nav-links { display: none; } }
+/* hamburger */
+.hamburger {
+  display: none; background: none; border: none; cursor: pointer;
+  padding: 8px; flex-direction: column; gap: 5px; z-index: 110;
+}
+.hamburger span {
+  display: block; width: 22px; height: 1.5px;
+  background: var(--base); transition: all 280ms cubic-bezier(0.2,0,0,1);
+}
+.nav.scrolled .hamburger span { background: var(--ink); }
+.hamburger.open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+.hamburger.open span:nth-child(2) { opacity: 0; }
+.hamburger.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+
+/* mobile drawer */
+.mobile-drawer {
+  display: none; position: fixed; inset: 0; z-index: 105;
+  background: var(--istituzionale);
+  flex-direction: column; align-items: center; justify-content: center;
+  gap: 0;
+}
+.mobile-drawer.open { display: flex; }
+.mobile-drawer a {
+  font-family: var(--font-display); font-size: 36px; font-weight: 300;
+  color: var(--base); text-decoration: none; letter-spacing: 0.02em;
+  padding: 18px 0; opacity: 0.85; transition: opacity 200ms;
+  border-bottom: 1px solid rgba(241,232,213,0.1); width: 80%; text-align: center;
+}
+.mobile-drawer a:last-child { border-bottom: none; }
+.mobile-drawer a:hover { opacity: 1; }
+.mobile-drawer .drawer-cta {
+  margin-top: 32px; border-bottom: none;
+  background: var(--accent); color: var(--istituzionale);
+  font-family: var(--font-body); font-size: 12px; letter-spacing: 0.24em;
+  text-transform: uppercase; font-weight: 500;
+  padding: 16px 40px; opacity: 1;
+}
+
+@media (max-width:720px) {
+  .nav { padding: 0 20px; }
+  .nav-links { display: none; }
+  .hamburger { display: flex; }
+}
 
 /* ============================================================
    HERO
@@ -243,12 +285,16 @@ body.modal-open { overflow: hidden; }
   .hero-numeral { display: none; }
 }
 @media (max-width:720px) {
-  .hero { padding-bottom: 48px; }
-  .hero-title { font-size: clamp(56px, 16vw, 100px); margin-bottom: 32px; }
+  .hero { padding-bottom: 48px; min-height: 100svh; }
+  .hero-title { font-size: clamp(52px, 15vw, 96px); margin-bottom: 28px; }
   .hero-eyebrow-row { flex-direction: column; gap: 6px; margin-bottom: 20px; }
   .hero-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 16px; }
   .hero-actions { flex-direction: column; gap: 10px; width: 100%; }
   .hero-actions .btn { width: 100%; justify-content: center; }
+}
+@media (max-width:400px) {
+  .hero-title { font-size: clamp(44px, 13vw, 72px); }
+  .hero-meta { grid-template-columns: 1fr; gap: 14px; }
 }
 
 /* ============================================================
@@ -365,8 +411,13 @@ body.modal-open { overflow: hidden; }
 
 @media (max-width:900px) {
   .serata-header { flex-direction: column; align-items: flex-start; gap: 28px; }
-  .program-item { grid-template-columns: 90px 1fr; }
+  .program-item { grid-template-columns: 80px 1fr; gap: 20px; }
   .program-desc { display: none; }
+}
+@media (max-width:500px) {
+  .program-item { grid-template-columns: 1fr; gap: 6px; padding: 28px 0; }
+  .program-time { font-size: 14px; letter-spacing: 0.1em; }
+  .program-name { font-size: 22px; }
 }
 
 /* ============================================================
@@ -422,14 +473,15 @@ body.modal-open { overflow: hidden; }
   .ticket-row { grid-template-columns: 1fr 1fr; }
   .ticket-perks { display: none; }
 }
-@media (max-width:580px) {
-  .ticket-row { grid-template-columns: 1fr; gap: 16px; padding: 28px 0; }
-  .ticket-name { font-size: 28px; }
+@media (max-width:640px) {
+  .ticket-row { grid-template-columns: 1fr; gap: 12px; padding: 24px 0; }
+  .ticket-name { font-size: 26px; }
+  .ticket-desc { font-size: 13px; }
   .ticket-action { justify-content: flex-start; }
   .ticket-action .btn { width: 100%; justify-content: center; }
   .ticket-price-col { text-align: left; }
-  .ticket-price { font-size: 32px; }
-  .biglietti-header { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .ticket-price { font-size: 30px; }
+  .biglietti-header { flex-direction: column; align-items: flex-start; gap: 12px; }
   .biglietti-note { text-align: left; max-width: 100%; }
 }
 
@@ -526,10 +578,11 @@ body.modal-open { overflow: hidden; }
 }
 .form-note { font-size: 11px; color: var(--ink-faint); line-height: 1.65; margin-top: 20px; }
 
-@media (max-width:900px) { .prenota-grid { grid-template-columns: 1fr; gap: 48px; } }
+@media (max-width:900px) { .prenota-grid { grid-template-columns: 1fr; gap: 40px; } }
 @media (max-width:580px) {
   .field-row { grid-template-columns: 1fr; }
-  .prenota-grid { gap: 36px; }
+  .prenota-grid { gap: 28px; }
+  .ticket-picker { grid-template-columns: 1fr; }
 }
 
 /* ============================================================
@@ -660,8 +713,10 @@ body.modal-open { overflow: hidden; }
 .footer-addr a { color: rgba(241,232,213,0.38); text-decoration: none; }
 .footer-addr a:hover { color: rgba(241,232,213,0.65); }
 @media (max-width:720px) {
-  .footer-top { flex-direction: column; gap: 40px; }
-  .footer-bottom { flex-direction: column; gap: 16px; }
+  .footer { padding: 56px 0 32px; }
+  .footer-top { flex-direction: column; gap: 32px; margin-bottom: 48px; }
+  .footer-nav { flex-wrap: wrap; gap: 20px 28px; }
+  .footer-bottom { flex-direction: column; gap: 12px; }
   .footer-addr { text-align: left; }
 }
 
@@ -743,7 +798,19 @@ body.modal-open { overflow: hidden; }
     <li><a href="#raggiungerci">Il Viaggio</a></li>
     <li><a href="#prenotazione" class="btn nav-cta">Prenota <span class="arrow"></span></a></li>
   </ul>
+  <button class="hamburger" id="hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
+
+<!-- Mobile drawer -->
+<div class="mobile-drawer" id="mobile-drawer">
+  <a href="#serata"       onclick="closeDrawer()">La Serata</a>
+  <a href="#biglietti"    onclick="closeDrawer()">Biglietti</a>
+  <a href="#hotel"        onclick="closeDrawer()">Hotel</a>
+  <a href="#raggiungerci" onclick="closeDrawer()">Il Viaggio</a>
+  <a href="#prenotazione" onclick="closeDrawer()" class="drawer-cta">Prenota</a>
+</div>
 
 <!-- ── HERO ──────────────────────────────────────────────────────────────── -->
 <section class="hero" id="home">
@@ -1307,6 +1374,22 @@ body.modal-open { overflow: hidden; }
 window.addEventListener('scroll', () => {
   document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 80);
 }, { passive: true });
+
+// ── HAMBURGER ─────────────────────────────────────────────────────────────────
+const hamburger = document.getElementById('hamburger');
+const drawer    = document.getElementById('mobile-drawer');
+
+function closeDrawer() {
+  hamburger.classList.remove('open');
+  drawer.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+hamburger.addEventListener('click', () => {
+  const isOpen = drawer.classList.toggle('open');
+  hamburger.classList.toggle('open', isOpen);
+  document.body.style.overflow = isOpen ? 'hidden' : '';
+});
 
 // ── COUNTDOWN ─────────────────────────────────────────────────────────────────
 (function () {
