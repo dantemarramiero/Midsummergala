@@ -361,32 +361,53 @@
     @media (max-width: 768px) {
       body { overflow-x: hidden; }
 
-      /* Header: logo sopra, azioni sotto — tutto centrato */
+      /* Header */
       header {
-        flex-direction: column; align-items: center;
-        gap: .6rem; padding: .85rem 1rem; text-align: center;
+        flex-direction: column; align-items: stretch;
+        gap: .5rem; padding: .75rem;
       }
-      .header-logo { font-size: 1rem; }
-      .header-logo span { display: block; margin: 2px 0 0; }
-      .header-actions { gap: .5rem; justify-content: center; flex-wrap: wrap; }
-      .header-actions .export-btn { font-size: .7rem; padding: .45rem .9rem; }
-      .header-actions .action-btn { font-size: .7rem; padding: .45rem .75rem; }
+      .header-logo { font-size: .95rem; text-align: center; }
+      .header-logo span { display: inline; }
+      .header-actions {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: .4rem; align-items: center;
+      }
+      /* Nascondi Esporta CSV su mobile */
+      .header-actions .btn-export-csv { display: none; }
+      .header-actions .export-btn {
+        font-size: .72rem; padding: .5rem .6rem;
+        letter-spacing: .08em; white-space: nowrap;
+        overflow: hidden; text-overflow: ellipsis;
+      }
+      .header-actions .action-btn {
+        font-size: .72rem; padding: .5rem .75rem; white-space: nowrap;
+      }
 
       /* Stats */
-      .stats-grid { grid-template-columns: 1fr 1fr; gap: .6rem; }
-      .stat-card { padding: 1rem; }
-      .stat-value { font-size: 2rem; }
+      .stats-grid { grid-template-columns: 1fr 1fr; gap: .5rem; }
+      .stat-card { padding: .85rem; }
+      .stat-value { font-size: 1.8rem; }
+      .stat-sub { font-size: .7rem; }
 
-      /* Main e toolbar */
-      main { padding: .75rem; }
-      .toolbar { gap: .5rem; }
-      .filter-tabs { flex-wrap: wrap; }
-      .tab-btn { padding: .3rem .7rem; font-size: .68rem; }
-      .search-box { min-width: 0; font-size: .8rem; }
+      /* Main */
+      main { padding: .6rem; }
+
+      /* Toolbar: tutto su colonne */
+      .toolbar {
+        flex-direction: column; gap: .5rem; align-items: stretch;
+      }
+      .filter-tabs { justify-content: center; }
+      .tab-btn { padding: .35rem .9rem; font-size: .72rem; }
+      .search-box {
+        width: 100%; min-width: 0; font-size: .85rem;
+        padding: .6rem 1rem; display: block;
+      }
+      .refresh-btn { align-self: flex-end; }
 
       /* Nascondi tabella, mostra cards */
       .table-scroll { display: none; }
-      .cards-list { display: flex; flex-direction: column; gap: .6rem; padding: .75rem; }
+      .cards-list { display: flex; flex-direction: column; gap: .6rem; padding: .5rem; }
     }
     @media (min-width: 769px) {
       .cards-list { display: none; }
@@ -441,7 +462,7 @@
     </div>
     <div class="header-actions">
       <button class="export-btn" onclick="openNewModal()" style="background:rgba(76,175,132,.1);border-color:rgba(76,175,132,.3);color:var(--green);">+ Nuova prenotazione</button>
-      <button class="export-btn" onclick="exportCSV()">⬇ Esporta CSV</button>
+      <button class="export-btn btn-export-csv" onclick="exportCSV()">⬇ Esporta CSV</button>
       <button class="action-btn" onclick="doLogout()">Esci</button>
     </div>
   </header>
