@@ -192,6 +192,8 @@ db.exec(`
 try { db.exec('ALTER TABLE reservations ADD COLUMN stripe_session_id TEXT'); } catch {}
 try { db.exec('ALTER TABLE reservations ADD COLUMN payment_intent_id TEXT'); } catch {}
 try { db.exec('ALTER TABLE reservations ADD COLUMN stripe_payment_status TEXT'); } catch {}
+try { db.exec('ALTER TABLE reservations ADD COLUMN checked_in INTEGER DEFAULT 0'); } catch {}
+try { db.exec('ALTER TABLE reservations ADD COLUMN checked_in_at TEXT'); } catch {}
 
 // ── Admin: Sync pagamenti da Stripe ──────────────────────────────────────────
 async function syncStripePayments() {
@@ -448,6 +450,20 @@ function authAdmin(req, res, next) {
   next();
 }
 
+// ── Admin: Check-in ──────────────────────────────────────────────────────────
+app.post('/api/admin/checkin/:id', authAdmin, (req, res) => {
+  const reservation = db.prepare('SELECT * FROM reservations WHERE id = ?').get(req.params.id);
+  if (!reservation) return res.status(404).json({ error: 'Prenotazione non trovata.' });
+  if (reservation.stato !== 'confermata') return res.status(400).json({ error: 'Solo prenotazioni confermate possono fare check-in.' });
+
+  const newState = reservation.checked_in ? 0 : 1;
+  const now = newState ? new Date().toISOString() : null;
+  db.prepare('UPDATE reservations SET checked_in = ?, checked_in_at = ? WHERE id = ?')
+    .run(newState, now, reservation.id);
+
+  res.json({ success: true, checked_in: newState, checked_in_at: now });
+});
+
 app.post('/api/admin/sync-payments', authAdmin, async (req, res) => {
   const result = await syncStripePayments();
   res.json(result);
@@ -464,7 +480,10 @@ app.get('/api/admin/stats', authAdmin, (req, res) => {
   const totals = db.prepare(
     "SELECT COUNT(*) AS prenotazioni, SUM(numero_biglietti) AS biglietti_totali FROM reservations WHERE stato != 'annullata'"
   ).get();
-  res.json({ byType, totals });
+  const checkins = db.prepare(
+    "SELECT COUNT(*) AS presenti FROM reservations WHERE checked_in = 1"
+  ).get();
+  res.json({ byType, totals, presenti: checkins.presenti });
 });
 
 app.get('/api/admin/reservations', authAdmin, (req, res) => {
