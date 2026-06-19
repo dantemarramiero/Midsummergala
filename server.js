@@ -255,6 +255,15 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// ── Public: Disponibilità navetta ────────────────────────────────────────────
+app.get('/api/availability', (req, res) => {
+  const NAVETTA_MAX = 100;
+  const row = db.prepare(
+    "SELECT COUNT(*) AS cnt FROM reservations WHERE tipo_biglietto = 'navetta' AND stato != 'annullata'"
+  ).get();
+  res.json({ navetta_remaining: Math.max(0, NAVETTA_MAX - row.cnt), navetta_max: NAVETTA_MAX });
+});
+
 // ── Checkout ─────────────────────────────────────────────────────────────────
 const PRICES_CENTS  = { standard: 5000, navetta: 6500 };
 const PRICES_LABELS = { standard: 'Biglietto Standard', navetta: 'Biglietto con Navetta' };

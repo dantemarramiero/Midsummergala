@@ -469,6 +469,29 @@ body.modal-open { overflow: hidden; }
 }
 .ticket-action { display: flex; justify-content: flex-end; }
 
+/* Availability badge */
+.ticket-avail {
+  display: flex; align-items: center; gap: 10px; margin-top: 14px;
+}
+.avail-count {
+  font-family: var(--font-display); font-size: 30px; font-weight: 300;
+  color: var(--accent); line-height: 1; letter-spacing: -0.02em;
+  transition: color 300ms;
+}
+.avail-count.low      { color: #c75a23; }
+.avail-count.sold-out { color: var(--ink-faint); }
+.avail-label {
+  font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--ink-faint); font-weight: 500; line-height: 1.4;
+}
+.pick-avail {
+  font-size: 11px; letter-spacing: 0.08em;
+  color: var(--accent); margin-top: 2px;
+  transition: color 300ms;
+}
+.pick-avail.low      { color: #c75a23; }
+.pick-avail.sold-out { color: var(--ink-faint); }
+
 @media (max-width:960px) {
   .ticket-row { grid-template-columns: 1fr 1fr; }
   .ticket-perks { display: none; }
@@ -978,6 +1001,10 @@ body.modal-open { overflow: hidden; }
         <div>
           <div class="ticket-name">Con<br><em style="font-style:italic;color:var(--accent);">Navetta</em></div>
           <div class="ticket-desc">Include tutto il biglietto Standard più navetta andata e ritorno</div>
+          <div class="ticket-avail">
+            <span class="avail-count" id="navetta-count">—</span>
+            <span class="avail-label">posti con<br>navetta rimasti</span>
+          </div>
         </div>
         <div class="ticket-perks">
           <div class="ticket-perk">Tutto del biglietto Standard</div>
@@ -1257,6 +1284,7 @@ body.modal-open { overflow: hidden; }
                 <span class="pick-name">Con Navetta</span>
                 <span class="pick-price">€ 65 <span class="pick-unit">/ persona</span></span>
                 <span style="font-size:11px;color:var(--ink-faint);margin-top:2px;">Partenza ore 18:00 · Stazione Pescara</span>
+                <span class="pick-avail" id="pick-navetta-avail">…</span>
               </button>
             </div>
           </div>
@@ -1526,6 +1554,35 @@ function closeModal() {
 document.getElementById('modal-backdrop').addEventListener('click', function (e) {
   if (e.target === this) closeModal();
 });
+
+// ── NAVETTA AVAILABILITY ──────────────────────────────────────────────────────
+async function loadAvailability() {
+  try {
+    const r = await fetch('/api/availability');
+    const { navetta_remaining: n } = await r.json();
+
+    const countEl    = document.getElementById('navetta-count');
+    const pickAvail  = document.getElementById('pick-navetta-avail');
+    const ticketBtn  = document.querySelector('#tr-navetta .btn');
+    const pickBtn    = document.getElementById('pick-navetta');
+
+    const cls = n === 0 ? 'sold-out' : n <= 20 ? 'low' : '';
+
+    if (countEl) {
+      countEl.textContent = n;
+      countEl.className   = 'avail-count' + (cls ? ' ' + cls : '');
+    }
+    if (pickAvail) {
+      pickAvail.textContent = n === 0 ? 'Esauriti' : n + ' posti rimasti';
+      pickAvail.className   = 'pick-avail' + (cls ? ' ' + cls : '');
+    }
+    if (n === 0) {
+      if (ticketBtn) { ticketBtn.disabled = true; ticketBtn.innerHTML = 'Esaurito'; }
+      if (pickBtn)   { pickBtn.disabled   = true; }
+    }
+  } catch {}
+}
+loadAvailability();
 
 // ── TWEAKS PANEL ──────────────────────────────────────────────────────────────
 function toggleTweaks() { document.getElementById('tweaks-drawer').classList.toggle('open'); }
