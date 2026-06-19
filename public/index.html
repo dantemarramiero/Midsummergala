@@ -361,6 +361,22 @@ body.modal-open { overflow: hidden; }
   .detail-sub { font-size: 13px; }
 }
 
+/* Program feature highlight (sempre visibile, anche mobile) */
+.program-feature {
+  margin-top: 14px;
+  padding: 12px 16px;
+  border-left: 2px solid var(--accent);
+  background: rgba(176,136,74,0.07);
+  font-size: 13px; line-height: 1.65;
+  color: rgba(241,232,213,0.82);
+}
+.program-feature span {
+  font-size: 11px; letter-spacing: 0.08em;
+  color: rgba(241,232,213,0.42);
+  display: block; margin-top: 4px;
+  text-transform: uppercase;
+}
+
 /* ============================================================
    SERATA (dark section)
 ============================================================ */
@@ -1000,8 +1016,15 @@ body.modal-open { overflow: hidden; }
       </div>
       <div class="program-item">
         <div class="program-time">20:30</div>
-        <div class="program-name">Cena Show<br><em style="color:var(--accent-soft);">Cooking</em></div>
-        <div class="program-desc">Finger buffet preparato a vista dagli chef: pulled pork in bottoncino croccante, patatine chips fritte al momento e frittura di calamari al cartoccio. Pecorino, Montepulciano e Cerasuolo Marramiero in giro braccio tra i tavoli. In esclusiva per la serata: degustazione dei migliori formaggi d'Italia a cura del Caseificio Artigiana con pairing vini Marramiero — offerta dalla nostra amica Grazia. ❤️</div>
+        <div>
+          <div class="program-name">Cena Show<br><em style="color:var(--accent-soft);">Cooking</em></div>
+          <div class="program-feature">
+            🧀 Degustazione dei migliori formaggi d'Italia<br>
+            con pairing vini Marramiero ❤️
+            <span>Caseificio Artigiana · offerta dalla nostra amica Grazia</span>
+          </div>
+        </div>
+        <div class="program-desc">Finger buffet preparato a vista dagli chef: pulled pork in bottoncino croccante, patatine chips fritte al momento e frittura di calamari al cartoccio. Pecorino, Montepulciano e Cerasuolo Marramiero in giro braccio tra i tavoli.</div>
       </div>
       <div class="program-item">
         <div class="program-time">21:30</div>
