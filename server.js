@@ -294,6 +294,17 @@ app.post('/api/create-checkout-session', async (req, res) => {
     return res.status(409).json({ error: 'Esiste già una prenotazione confermata con questa email.' });
   }
 
+  // Block navetta if sold out
+  if (tipo_biglietto === 'navetta') {
+    const NAVETTA_MAX = 100;
+    const navettaSold = db.prepare(
+      "SELECT COUNT(*) AS cnt FROM reservations WHERE tipo_biglietto = 'navetta' AND stato != 'annullata'"
+    ).get();
+    if (navettaSold.cnt >= NAVETTA_MAX) {
+      return res.status(409).json({ error: 'Biglietti con navetta esauriti.' });
+    }
+  }
+
   // Create pending reservation
   const result = db.prepare(`
     INSERT INTO reservations (nome, cognome, email, telefono, tipo_biglietto, numero_biglietti, note, stato)
