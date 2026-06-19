@@ -195,6 +195,15 @@ try { db.exec('ALTER TABLE reservations ADD COLUMN stripe_payment_status TEXT');
 try { db.exec('ALTER TABLE reservations ADD COLUMN checked_in INTEGER DEFAULT 0'); } catch {}
 try { db.exec('ALTER TABLE reservations ADD COLUMN checked_in_at TEXT'); } catch {}
 
+// ── Settings (chiave-valore persistente) ──────────────────────────────────────
+db.exec(`CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT)`);
+db.prepare(`INSERT OR IGNORE INTO settings (key, value) VALUES ('navetta_open', '1')`).run();
+
+function isNavettaOpen() {
+  const row = db.prepare("SELECT value FROM settings WHERE key = 'navetta_open'").get();
+  return row?.value !== '0';
+}
+
 // ── Admin: Sync pagamenti da Stripe ──────────────────────────────────────────
 async function syncStripePayments() {
   if (!stripe) return { synced: 0, total: 0 };
@@ -258,10 +267,15 @@ app.use(express.static(path.join(__dirname, 'public')));
 // ── Public: Disponibilità navetta ────────────────────────────────────────────
 app.get('/api/availability', (req, res) => {
   const NAVETTA_MAX = 100;
+  const navetta_open = isNavettaOpen();
   const row = db.prepare(
     "SELECT COUNT(*) AS cnt FROM reservations WHERE tipo_biglietto = 'navetta' AND stato != 'annullata'"
   ).get();
-  res.json({ navetta_remaining: Math.max(0, NAVETTA_MAX - row.cnt), navetta_max: NAVETTA_MAX });
+  res.json({
+    navetta_remaining: navetta_open ? Math.max(0, NAVETTA_MAX - row.cnt) : 0,
+    navetta_max: NAVETTA_MAX,
+    navetta_open,
+  });
 });
 
 // ── Checkout ─────────────────────────────────────────────────────────────────
@@ -294,8 +308,11 @@ app.post('/api/create-checkout-session', async (req, res) => {
     return res.status(409).json({ error: 'Esiste già una prenotazione confermata con questa email.' });
   }
 
-  // Block navetta if sold out
+  // Block navetta if closed or sold out
   if (tipo_biglietto === 'navetta') {
+    if (!isNavettaOpen()) {
+      return res.status(409).json({ error: 'La vendita dei biglietti con navetta è momentaneamente sospesa.' });
+    }
     const NAVETTA_MAX = 100;
     const navettaSold = db.prepare(
       "SELECT COUNT(*) AS cnt FROM reservations WHERE tipo_biglietto = 'navetta' AND stato != 'annullata'"
@@ -482,6 +499,17 @@ app.post('/api/admin/checkin/:id', authAdmin, (req, res) => {
     .run(newState, now, reservation.id);
 
   res.json({ success: true, checked_in: newState, checked_in_at: now });
+});
+
+// ── Admin: Stato navetta ──────────────────────────────────────────────────────
+app.get('/api/admin/navetta-status', authAdmin, (req, res) => {
+  res.json({ navetta_open: isNavettaOpen() });
+});
+
+app.post('/api/admin/navetta-toggle', authAdmin, (req, res) => {
+  const newVal = isNavettaOpen() ? '0' : '1';
+  db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('navetta_open', ?)").run(newVal);
+  res.json({ navetta_open: newVal === '1' });
 });
 
 app.post('/api/admin/sync-payments', authAdmin, async (req, res) => {

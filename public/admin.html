@@ -198,6 +198,24 @@
     }
     .refresh-btn:hover { color: var(--cream); border-color: rgba(36,26,37,.35); }
 
+    /* Navetta toggle */
+    .navetta-toggle {
+      display: flex; align-items: center; gap: .35rem;
+      padding: .5rem 1rem; border-radius: 8px; border: 1px solid;
+      font-family: 'Jost', sans-serif; font-size: .72rem;
+      letter-spacing: .08em; text-transform: uppercase;
+      cursor: pointer; transition: all .2s; white-space: nowrap;
+    }
+    .navetta-toggle.open {
+      background: rgba(39,121,90,.08); border-color: rgba(39,121,90,.3); color: var(--green);
+    }
+    .navetta-toggle.open:hover { background: rgba(39,121,90,.15); }
+    .navetta-toggle.locked {
+      background: rgba(192,57,43,.08); border-color: rgba(192,57,43,.3); color: var(--red);
+    }
+    .navetta-toggle.locked:hover { background: rgba(192,57,43,.15); }
+    .navetta-toggle:disabled { opacity: .5; cursor: not-allowed; }
+
     /* ── TABLE ──────────────────────────────────────────────── */
     .table-wrap {
       background: var(--bg3);
@@ -474,6 +492,7 @@
     <div class="header-actions">
       <button class="export-btn" onclick="openNewModal()" style="background:rgba(76,175,132,.1);border-color:rgba(76,175,132,.3);color:var(--green);">+ Nuova prenotazione</button>
       <button class="export-btn btn-export-csv" onclick="exportCSV()">⬇ Esporta CSV</button>
+      <button class="navetta-toggle open" id="navetta-toggle-btn" onclick="toggleNavetta()" title="Blocca/sblocca vendita biglietti con navetta">🔓 Navetta</button>
       <button class="action-btn" onclick="doLogout()">Esci</button>
     </div>
   </header>
@@ -626,6 +645,7 @@ function showApp() {
   document.getElementById('app').style.display = 'flex';
   document.getElementById('app').style.flexDirection = 'column';
   loadAll();
+  loadNavettaStatus();
   // Sync pagamenti Stripe in background
   fetch(`/api/admin/sync-payments?key=${encodeURIComponent(adminKey)}`, { method: 'POST' })
     .then(r => r.json())
@@ -939,6 +959,49 @@ function openNewModal() {
 
 function closeNewModal() {
   document.getElementById('new-modal').classList.remove('open');
+}
+
+// ── NAVETTA TOGGLE ────────────────────────────────────────────────────────────
+let navettaOpen = true;
+
+async function loadNavettaStatus() {
+  try {
+    const res  = await fetch(`/api/admin/navetta-status?key=${encodeURIComponent(adminKey)}`);
+    const data = await res.json();
+    navettaOpen = data.navetta_open;
+    updateNavettaBtn();
+  } catch {}
+}
+
+function updateNavettaBtn() {
+  const btn = document.getElementById('navetta-toggle-btn');
+  if (!btn) return;
+  if (navettaOpen) {
+    btn.textContent = '🔓 Navetta';
+    btn.className   = 'navetta-toggle open';
+    btn.title       = 'Navetta APERTA — clicca per bloccare le vendite';
+  } else {
+    btn.textContent = '🔒 Navetta';
+    btn.className   = 'navetta-toggle locked';
+    btn.title       = 'Navetta BLOCCATA — clicca per riaprire le vendite';
+  }
+}
+
+async function toggleNavetta() {
+  const azione = navettaOpen ? 'bloccare' : 'sbloccare';
+  if (!confirm(`Vuoi ${azione} la vendita dei biglietti con navetta?`)) return;
+  const btn = document.getElementById('navetta-toggle-btn');
+  if (btn) btn.disabled = true;
+  const res  = await fetch(`/api/admin/navetta-toggle?key=${encodeURIComponent(adminKey)}`, { method: 'POST' });
+  const data = await res.json();
+  if (res.ok) {
+    navettaOpen = data.navetta_open;
+    updateNavettaBtn();
+    showToast(navettaOpen ? '🔓 Vendita navetta riaperta!' : '🔒 Vendita navetta bloccata.', navettaOpen ? 'green' : 'gold');
+  } else {
+    showToast('✗ ' + data.error, 'red');
+  }
+  if (btn) btn.disabled = false;
 }
 
 async function submitNewReservation() {
