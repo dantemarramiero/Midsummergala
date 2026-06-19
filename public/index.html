@@ -779,6 +779,73 @@ body.modal-open { overflow: hidden; }
 ============================================================ */
 .tweaks-panel { position: fixed; bottom: 24px; right: 24px; z-index: 150; }
 @media (max-width:720px) { .tweaks-panel { display: none; } }
+
+/* ============================================================
+   MOBILE GLOBAL FIXES
+============================================================ */
+
+/* Fix iOS background-attachment:fixed (non funziona su Safari mobile) */
+@media (max-width:900px) {
+  .serata-section { background-attachment: scroll; }
+}
+
+/* Fix iOS auto-zoom sui campi form (font < 16px triggera lo zoom) */
+@media (max-width:720px) {
+  .field-input, .field-select, .field-textarea { font-size: 16px !important; }
+}
+
+/* Partner note Artigiana — stack verticale su mobile */
+@media (max-width:640px) {
+  .partner-note {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 16px !important;
+  }
+  .partner-note img { height: 40px !important; }
+}
+
+/* Availability badge — numero più piccolo su mobile */
+@media (max-width:640px) {
+  .avail-count { font-size: 22px; }
+  .avail-label { font-size: 10px; }
+  .ticket-avail { margin-top: 10px; gap: 8px; }
+}
+
+/* Serata intro — larghezza piena su mobile */
+@media (max-width:720px) {
+  .serata-intro { max-width: 100%; font-size: 14px; }
+  .serata-header { margin-bottom: 48px; }
+}
+
+/* Form prenota — padding e gap su mobile */
+@media (max-width:580px) {
+  .prenota-section section, .prenota-section { padding: 56px 0; }
+  .prenota-grid { gap: 20px; }
+  .ticket-pick-btn { padding: 14px 12px; }
+  .pick-name { font-size: 18px; }
+  .field-group { margin-bottom: 20px; }
+}
+
+/* Biglietti — ticket row più compatta su mobile */
+@media (max-width:480px) {
+  .ticket-name { font-size: 28px; }
+  .ticket-row { padding: 20px 0; gap: 10px; }
+  .ticket-price { font-size: 26px; }
+}
+
+/* Travel cards — pulsanti Skyscanner su colonna singola su schermi molto piccoli */
+@media (max-width:400px) {
+  .travel-card > div[style*="grid-template-columns:1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Countdown — separatori nascosti su mobile piccolo */
+@media (max-width:380px) {
+  .cd-sep { display: none; }
+  .countdown-inner { gap: 18px; }
+  .cd-num { font-size: 30px; }
+}
 .tweaks-toggle {
   width: 44px; height: 44px; border: none; cursor: pointer;
   background: var(--istituzionale); display: flex; align-items: center; justify-content: center;
@@ -957,13 +1024,13 @@ body.modal-open { overflow: hidden; }
         <div class="program-desc">La tradizione abruzzese nel cuore della notte: arrosticini fatti a mano e cotti a vista sul fuoco, la coccola perfetta per continuare a festeggiare fino all'alba.</div>
       </div>
       <div class="program-item">
-        <div class="program-time">02:30</div>
+        <div class="program-time">03:00</div>
         <div class="program-name">Ritorno<br><em style="color:var(--accent-soft);">Navetta</em></div>
         <div class="program-desc">Due navette di rientro verso la Stazione Centrale di Pescara per chi ha scelto il biglietto con navetta inclusa.</div>
       </div>
     </div>
     <!-- Partner note -->
-    <div class="fade-up" style="margin-top:64px;padding-top:40px;border-top:1px solid rgba(241,232,213,0.1);display:flex;align-items:center;gap:28px;flex-wrap:wrap;">
+    <div class="fade-up partner-note" style="margin-top:64px;padding-top:40px;border-top:1px solid rgba(241,232,213,0.1);display:flex;align-items:center;gap:28px;flex-wrap:wrap;">
       <span style="font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:rgba(241,232,213,0.35);font-weight:500;white-space:nowrap;">Degustazione formaggi</span>
       <img src="images/artigiana-logo.svg" alt="Caseificio Artigiana" style="height:52px;opacity:0.95;" />
       <span style="font-size:13px;color:rgba(241,232,213,0.45);font-style:italic;">offerta dalla nostra amica Grazia</span>
