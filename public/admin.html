@@ -713,14 +713,21 @@ async function loadStats() {
 
     document.getElementById('stat-total').textContent = data.totals.prenotazioni ?? 0;
 
-    const types = { standard: {}, navetta: {} };
+    const types = { standard: {}, navetta: {}, navetta_only: {} };
     (data.byType || []).forEach(r => { types[r.tipo_biglietto] = r; });
 
-    ['standard', 'navetta'].forEach(t => {
-      const v = types[t];
-      document.getElementById(`stat-${t}`).textContent   = v.prenotazioni ?? 0;
-      document.getElementById(`stat-${t}-t`).textContent = v.biglietti_totali ? `${v.biglietti_totali} biglietti` : '';
-    });
+    // Standard
+    const vs = types['standard'];
+    document.getElementById('stat-standard').textContent   = vs.prenotazioni ?? 0;
+    document.getElementById('stat-standard-t').textContent = vs.biglietti_totali ? `${vs.biglietti_totali} biglietti` : '';
+
+    // Con Navetta = navetta + navetta_only
+    const vn  = types['navetta'];
+    const vno = types['navetta_only'];
+    const navTot = (vn.prenotazioni ?? 0) + (vno.prenotazioni ?? 0);
+    const navBig = (vn.biglietti_totali ?? 0) + (vno.biglietti_totali ?? 0);
+    document.getElementById('stat-navetta').textContent   = navTot;
+    document.getElementById('stat-navetta-t').textContent = navBig ? `${navBig} biglietti` : '';
 
     const pending = data.pending ?? 0;
     document.getElementById('stat-pending').textContent   = pending;
