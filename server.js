@@ -46,8 +46,8 @@ async function sendConfirmationEmail(reservation) {
     console.log('EMAIL: Nessun provider configurato (GMAIL_USER o RESEND_API_KEY mancante).');
     return;
   }
-  const tipoLabel = tipo_biglietto === 'navetta' ? 'Con Navetta Inclusa' : 'Standard';
-  const prezzoUnit = tipo_biglietto === 'navetta' ? 65 : 50;
+  const tipoLabel = tipo_biglietto === 'navetta' ? 'Con Navetta Inclusa' : tipo_biglietto === 'navetta_only' ? 'Solo Navetta A/R' : 'Standard';
+  const prezzoUnit = tipo_biglietto === 'navetta' ? 65 : tipo_biglietto === 'navetta_only' ? 15 : 50;
   const totale = prezzoUnit * numero_biglietti;
   const ref = '#' + String(id).padStart(4, '0');
 
@@ -269,7 +269,7 @@ app.get('/api/availability', (req, res) => {
   const NAVETTA_MAX = 100;
   const navetta_open = isNavettaOpen();
   const row = db.prepare(
-    "SELECT COUNT(*) AS cnt FROM reservations WHERE tipo_biglietto = 'navetta' AND stato != 'annullata'"
+    "SELECT COUNT(*) AS cnt FROM reservations WHERE tipo_biglietto IN ('navetta','navetta_only') AND stato != 'annullata'"
   ).get();
   res.json({
     navetta_remaining: navetta_open ? Math.max(0, NAVETTA_MAX - row.cnt) : 0,
@@ -279,8 +279,8 @@ app.get('/api/availability', (req, res) => {
 });
 
 // ── Checkout ─────────────────────────────────────────────────────────────────
-const PRICES_CENTS  = { standard: 5000, navetta: 6500 };
-const PRICES_LABELS = { standard: 'Biglietto Standard', navetta: 'Biglietto con Navetta' };
+const PRICES_CENTS  = { standard: 5000, navetta: 6500, navetta_only: 1500 };
+const PRICES_LABELS = { standard: 'Biglietto Standard', navetta: 'Biglietto con Navetta', navetta_only: 'Solo Navetta A/R' };
 
 app.post('/api/create-checkout-session', async (req, res) => {
   if (!stripe) return res.status(500).json({ error: 'Pagamenti non configurati.' });
@@ -293,7 +293,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return res.status(400).json({ error: 'Indirizzo email non valido.' });
   }
-  if (!['standard', 'navetta'].includes(tipo_biglietto)) {
+  if (!['standard', 'navetta', 'navetta_only'].includes(tipo_biglietto)) {
     return res.status(400).json({ error: 'Tipo biglietto non valido.' });
   }
 
@@ -308,17 +308,17 @@ app.post('/api/create-checkout-session', async (req, res) => {
     return res.status(409).json({ error: 'Esiste già una prenotazione confermata con questa email.' });
   }
 
-  // Block navetta if closed or sold out
-  if (tipo_biglietto === 'navetta') {
+  // Block navetta/navetta_only if closed or sold out
+  if (tipo_biglietto === 'navetta' || tipo_biglietto === 'navetta_only') {
     if (!isNavettaOpen()) {
       return res.status(409).json({ error: 'La vendita dei biglietti con navetta è momentaneamente sospesa.' });
     }
     const NAVETTA_MAX = 100;
     const navettaSold = db.prepare(
-      "SELECT COUNT(*) AS cnt FROM reservations WHERE tipo_biglietto = 'navetta' AND stato != 'annullata'"
+      "SELECT COUNT(*) AS cnt FROM reservations WHERE tipo_biglietto IN ('navetta','navetta_only') AND stato != 'annullata'"
     ).get();
     if (navettaSold.cnt >= NAVETTA_MAX) {
-      return res.status(409).json({ error: 'Biglietti con navetta esauriti.' });
+      return res.status(409).json({ error: 'Posti navetta esauriti.' });
     }
   }
 
@@ -461,7 +461,7 @@ app.post('/api/admin/reservations/manual', authAdmin, async (req, res) => {
   if (!nome?.trim() || !cognome?.trim() || !email?.trim()) {
     return res.status(400).json({ error: 'Nome, cognome e email sono obbligatori.' });
   }
-  if (!['standard', 'navetta'].includes(tipo_biglietto)) {
+  if (!['standard', 'navetta', 'navetta_only'].includes(tipo_biglietto)) {
     return res.status(400).json({ error: 'Tipo biglietto non valido.' });
   }
   const statoVal = ['confermata', 'in_attesa'].includes(stato) ? stato : 'confermata';
@@ -536,15 +536,19 @@ app.get('/api/admin/stats', authAdmin, (req, res) => {
 
 app.get('/api/admin/reservations', authAdmin, (req, res) => {
   const { tipo, q } = req.query;
-  let sql = 'SELECT * FROM reservations WHERE 1=1';
+  let sql = `SELECT r.*,
+    CASE WHEN r.tipo_biglietto = 'navetta_only' THEN
+      (SELECT COUNT(*) FROM reservations s WHERE s.email = r.email AND s.tipo_biglietto IN ('standard','navetta') AND s.stato = 'confermata')
+    ELSE NULL END AS ha_biglietto_evento
+    FROM reservations r WHERE 1=1`;
   const params = [];
-  if (tipo && tipo !== 'all') { sql += ' AND tipo_biglietto = ?'; params.push(tipo); }
+  if (tipo && tipo !== 'all') { sql += ' AND r.tipo_biglietto = ?'; params.push(tipo); }
   if (q) {
-    sql += ' AND (nome LIKE ? OR cognome LIKE ? OR email LIKE ?)';
+    sql += ' AND (r.nome LIKE ? OR r.cognome LIKE ? OR r.email LIKE ?)';
     const like = `%${q}%`;
     params.push(like, like, like);
   }
-  sql += ' ORDER BY created_at DESC';
+  sql += ' ORDER BY r.created_at DESC';
   res.json(db.prepare(sql).all(...params));
 });
 

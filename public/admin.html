@@ -264,8 +264,17 @@
       border-radius: 50px; font-size: .7rem;
       letter-spacing: .1em; text-transform: uppercase;
     }
-    .badge-standard { background: rgba(44,82,130,.08); color: #2c5282; border: 1px solid rgba(44,82,130,.2); }
-    .badge-navetta  { background: rgba(154,114,53,.1); color: var(--gold); border: 1px solid rgba(154,114,53,.25); }
+    .badge-standard     { background: rgba(44,82,130,.08); color: #2c5282; border: 1px solid rgba(44,82,130,.2); }
+    .badge-navetta      { background: rgba(154,114,53,.1); color: var(--gold); border: 1px solid rgba(154,114,53,.25); }
+    .badge-navetta-only { background: rgba(39,121,90,.08); color: var(--green); border: 1px solid rgba(39,121,90,.2); }
+
+    .evento-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: .65rem; letter-spacing: .06em; padding: .15rem .5rem;
+      border-radius: 50px; font-weight: 500; margin-left: 4px;
+    }
+    .evento-ok  { background: rgba(39,121,90,.1); color: var(--green); border: 1px solid rgba(39,121,90,.25); }
+    .evento-warn { background: rgba(192,57,43,.08); color: var(--red); border: 1px solid rgba(192,57,43,.2); }
 
     .stato-badge {
       display: inline-block; padding: .2rem .7rem;
@@ -524,9 +533,10 @@
     <!-- Toolbar -->
     <div class="toolbar">
       <div class="filter-tabs">
-        <button class="tab-btn active" data-filter="all"     onclick="setFilter('all')">Tutti</button>
-        <button class="tab-btn" data-filter="standard"  onclick="setFilter('standard')">Standard</button>
-        <button class="tab-btn" data-filter="navetta"   onclick="setFilter('navetta')">Con Navetta</button>
+        <button class="tab-btn active" data-filter="all"          onclick="setFilter('all')">Tutti</button>
+        <button class="tab-btn" data-filter="standard"       onclick="setFilter('standard')">Standard</button>
+        <button class="tab-btn" data-filter="navetta"        onclick="setFilter('navetta')">Con Navetta</button>
+        <button class="tab-btn" data-filter="navetta_only"   onclick="setFilter('navetta_only')">Solo Navetta</button>
       </div>
       <input type="text" class="search-box" id="search-box" placeholder="Cerca per nome, cognome, email…" oninput="loadReservations()" />
       <button class="refresh-btn" onclick="loadAll()" title="Aggiorna">↺</button>
@@ -723,10 +733,18 @@ function renderTable(rows) {
     return;
   }
 
-  const typeBadge = t => {
-    const m = { standard: 'badge-standard', navetta: 'badge-navetta' };
-    const l = { standard: 'Standard', navetta: 'Con Navetta' };
-    return `<span class="badge ${m[t] || ''}">${l[t] || t}</span>`;
+  const typeBadge = (t, r) => {
+    const m = { standard: 'badge-standard', navetta: 'badge-navetta', navetta_only: 'badge-navetta-only' };
+    const l = { standard: 'Standard', navetta: 'Con Navetta', navetta_only: 'Solo Navetta' };
+    let badge = `<span class="badge ${m[t] || ''}">${l[t] || t}</span>`;
+    if (t === 'navetta_only') {
+      if (r.ha_biglietto_evento >= 1) {
+        badge += `<span class="evento-badge evento-ok">✓ ha standard</span>`;
+      } else {
+        badge += `<span class="evento-badge evento-warn">⚠ senza evento</span>`;
+      }
+    }
+    return badge;
   };
 
   const statoBadge = s => {
@@ -785,7 +803,7 @@ function renderTable(rows) {
       <td class="td-name">${esc(r.nome)} ${esc(r.cognome)}</td>
       <td class="td-email">${esc(r.email)}</td>
       <td class="td-phone">${esc(r.telefono || '—')}</td>
-      <td>${typeBadge(r.tipo_biglietto)}</td>
+      <td>${typeBadge(r.tipo_biglietto, r)}</td>
       <td>${payBadge(r)}</td>
       <td><span class="stato-badge stato-${r.stato}">${
         {confermata:'✓ Confermata', in_attesa:'⏳ In attesa', annullata:'✕ Annullata'}[r.stato] || r.stato
@@ -810,7 +828,7 @@ function renderTable(rows) {
           <div class="res-card-name">${esc(r.nome)} ${esc(r.cognome)}</div>
           <div class="res-card-id">#${String(r.id).padStart(4,'0')} · ${fmtDate(r.created_at)}</div>
         </div>
-        ${typeBadge(r.tipo_biglietto)}
+        ${typeBadge(r.tipo_biglietto, r)}
       </div>
       <div class="res-card-email">${esc(r.email)}${r.telefono ? ' · ' + esc(r.telefono) : ''}</div>
       <div class="res-card-row">

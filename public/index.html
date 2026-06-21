@@ -1125,6 +1125,29 @@ body.modal-open { overflow: hidden; }
         </div>
       </div>
 
+      <!-- Solo navetta -->
+      <div class="ticket-row" id="tr-navetta_only" style="opacity:0.85;">
+        <div>
+          <div class="ticket-name" style="font-size:26px;">Solo<br><em style="font-style:italic;color:var(--accent);">Navetta</em></div>
+          <div class="ticket-desc" style="margin-top:6px;">Hai già il biglietto Standard? Aggiungi solo la navetta A/R da Pescara</div>
+        </div>
+        <div class="ticket-perks">
+          <div class="ticket-perk">Navetta A/R inclusa</div>
+          <div class="ticket-perk">1ª partenza ore 19:00 · Stazione Centrale Pescara</div>
+          <div class="ticket-perk">2ª partenza ore 19:30 · Stazione Centrale Pescara</div>
+          <div class="ticket-perk">Rientro alle 03:00</div>
+        </div>
+        <div class="ticket-price-col">
+          <div class="ticket-price">€ 15</div>
+          <div class="ticket-unit">a persona</div>
+        </div>
+        <div class="ticket-action">
+          <button class="btn btn--ghost" type="button" onclick="selectTicket('navetta_only')">
+            Aggiungi <span class="arrow"></span>
+          </button>
+        </div>
+      </div>
+
     </div>
   </div>
 </section>
@@ -1378,7 +1401,7 @@ body.modal-open { overflow: hidden; }
           <div class="field-group">
             <label class="field-label">Tipologia biglietto *</label>
             <input type="hidden" id="tipo_biglietto" value="" required />
-            <div class="ticket-picker">
+            <div class="ticket-picker" style="grid-template-columns:1fr 1fr 1fr;">
               <button type="button" class="ticket-pick-btn" id="pick-standard" onclick="pickTicket('standard')">
                 <span class="pick-name">Standard</span>
                 <span class="pick-price">€ 50 <span class="pick-unit">/ persona</span></span>
@@ -1388,6 +1411,11 @@ body.modal-open { overflow: hidden; }
                 <span class="pick-price">€ 65 <span class="pick-unit">/ persona</span></span>
                 <span style="font-size:11px;color:var(--ink-faint);margin-top:2px;">Navette ore 19:00 e 19:30 · Stazione Pescara</span>
                 <span class="pick-avail" id="pick-navetta-avail">…</span>
+              </button>
+              <button type="button" class="ticket-pick-btn" id="pick-navetta_only" onclick="pickTicket('navetta_only')">
+                <span class="pick-name" style="font-size:17px;">Solo Navetta</span>
+                <span class="pick-price">€ 15 <span class="pick-unit">/ persona</span></span>
+                <span style="font-size:11px;color:var(--ink-faint);margin-top:2px;">Hai già il biglietto Standard</span>
               </button>
             </div>
           </div>
@@ -1544,9 +1572,9 @@ const io = new IntersectionObserver(entries => {
 document.querySelectorAll('.fade-up').forEach(el => io.observe(el));
 
 // ── TICKET & SUMMARY ─────────────────────────────────────────────────────────
-const PRICES = { standard: 50, navetta: 65 };
-const LABELS = { standard: 'Standard', navetta: 'Con navetta inclusa' };
-const UNITS  = { standard: 'a persona', navetta: 'a persona' };
+const PRICES = { standard: 50, navetta: 65, navetta_only: 15 };
+const LABELS = { standard: 'Standard', navetta: 'Con navetta inclusa', navetta_only: 'Solo Navetta A/R' };
+const UNITS  = { standard: 'a persona', navetta: 'a persona', navetta_only: 'a persona' };
 
 function selectTicket(type) {
   document.querySelectorAll('.ticket-row').forEach(r => r.classList.remove('selected'));
