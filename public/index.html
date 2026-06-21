@@ -575,7 +575,7 @@ body.modal-open { overflow: hidden; }
 .field-textarea::placeholder { color: var(--ink-faint); }
 
 /* ticket picker */
-.ticket-picker { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+.ticket-picker { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 4px; }
 .ticket-pick-btn {
   display: flex; flex-direction: column; gap: 6px;
   padding: 16px; border: 1px solid var(--hairline-strong);
@@ -1103,10 +1103,6 @@ body.modal-open { overflow: hidden; }
         <div>
           <div class="ticket-name">Con<br><em style="font-style:italic;color:var(--accent);">Navetta</em></div>
           <div class="ticket-desc">Include tutto il biglietto Standard più navetta andata e ritorno</div>
-          <div class="ticket-avail">
-            <span class="avail-count" id="navetta-count">—</span>
-            <span class="avail-label">posti con<br>navetta rimasti</span>
-          </div>
         </div>
         <div class="ticket-perks">
           <div class="ticket-perk">Tutto del biglietto Standard</div>
@@ -1401,7 +1397,7 @@ body.modal-open { overflow: hidden; }
           <div class="field-group">
             <label class="field-label">Tipologia biglietto *</label>
             <input type="hidden" id="tipo_biglietto" value="" required />
-            <div class="ticket-picker" style="grid-template-columns:1fr 1fr 1fr;">
+            <div class="ticket-picker">
               <button type="button" class="ticket-pick-btn" id="pick-standard" onclick="pickTicket('standard')">
                 <span class="pick-name">Standard</span>
                 <span class="pick-price">€ 50 <span class="pick-unit">/ persona</span></span>
@@ -1691,10 +1687,14 @@ async function loadAvailability() {
     const r = await fetch('/api/availability');
     const { navetta_open } = await r.json();
     if (!navetta_open) {
-      const ticketBtn = document.querySelector('#tr-navetta .btn');
-      const pickBtn   = document.getElementById('pick-navetta');
-      if (ticketBtn) { ticketBtn.disabled = true; ticketBtn.innerHTML = 'Non disponibile'; }
-      if (pickBtn)   { pickBtn.disabled   = true; }
+      ['#tr-navetta .btn', '#tr-navetta_only .btn'].forEach(sel => {
+        const el = document.querySelector(sel);
+        if (el) { el.disabled = true; el.innerHTML = 'Non disponibile'; }
+      });
+      ['pick-navetta', 'pick-navetta_only'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.disabled = true;
+      });
     }
   } catch {}
 }
