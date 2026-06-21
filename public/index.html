@@ -1410,7 +1410,6 @@ body.modal-open { overflow: hidden; }
                 <span class="pick-name">Con Navetta</span>
                 <span class="pick-price">€ 65 <span class="pick-unit">/ persona</span></span>
                 <span style="font-size:11px;color:var(--ink-faint);margin-top:2px;">Navette ore 19:00 e 19:30 · Stazione Pescara</span>
-                <span class="pick-avail" id="pick-navetta-avail">…</span>
               </button>
               <button type="button" class="ticket-pick-btn" id="pick-navetta_only" onclick="pickTicket('navetta_only')">
                 <span class="pick-name" style="font-size:17px;">Solo Navetta</span>
@@ -1690,25 +1689,11 @@ document.getElementById('modal-backdrop').addEventListener('click', function (e)
 async function loadAvailability() {
   try {
     const r = await fetch('/api/availability');
-    const { navetta_remaining: n } = await r.json();
-
-    const countEl    = document.getElementById('navetta-count');
-    const pickAvail  = document.getElementById('pick-navetta-avail');
-    const ticketBtn  = document.querySelector('#tr-navetta .btn');
-    const pickBtn    = document.getElementById('pick-navetta');
-
-    const cls = n === 0 ? 'sold-out' : n <= 20 ? 'low' : '';
-
-    if (countEl) {
-      countEl.textContent = n;
-      countEl.className   = 'avail-count' + (cls ? ' ' + cls : '');
-    }
-    if (pickAvail) {
-      pickAvail.textContent = n === 0 ? 'Esauriti' : n + ' posti rimasti';
-      pickAvail.className   = 'pick-avail' + (cls ? ' ' + cls : '');
-    }
-    if (n === 0) {
-      if (ticketBtn) { ticketBtn.disabled = true; ticketBtn.innerHTML = 'Esaurito'; }
+    const { navetta_open } = await r.json();
+    if (!navetta_open) {
+      const ticketBtn = document.querySelector('#tr-navetta .btn');
+      const pickBtn   = document.getElementById('pick-navetta');
+      if (ticketBtn) { ticketBtn.disabled = true; ticketBtn.innerHTML = 'Non disponibile'; }
       if (pickBtn)   { pickBtn.disabled   = true; }
     }
   } catch {}

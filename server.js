@@ -266,16 +266,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // ── Public: Disponibilità navetta ────────────────────────────────────────────
 app.get('/api/availability', (req, res) => {
-  const NAVETTA_MAX = 100;
   const navetta_open = isNavettaOpen();
-  const row = db.prepare(
-    "SELECT COUNT(*) AS cnt FROM reservations WHERE tipo_biglietto IN ('navetta','navetta_only') AND stato != 'annullata'"
-  ).get();
-  res.json({
-    navetta_remaining: navetta_open ? Math.max(0, NAVETTA_MAX - row.cnt) : 0,
-    navetta_max: NAVETTA_MAX,
-    navetta_open,
-  });
+  res.json({ navetta_open });
 });
 
 // ── Checkout ─────────────────────────────────────────────────────────────────
@@ -308,17 +300,10 @@ app.post('/api/create-checkout-session', async (req, res) => {
     return res.status(409).json({ error: 'Esiste già una prenotazione confermata con questa email.' });
   }
 
-  // Block navetta/navetta_only if closed or sold out
+  // Block navetta/navetta_only if manually closed
   if (tipo_biglietto === 'navetta' || tipo_biglietto === 'navetta_only') {
     if (!isNavettaOpen()) {
       return res.status(409).json({ error: 'La vendita dei biglietti con navetta è momentaneamente sospesa.' });
-    }
-    const NAVETTA_MAX = 100;
-    const navettaSold = db.prepare(
-      "SELECT COUNT(*) AS cnt FROM reservations WHERE tipo_biglietto IN ('navetta','navetta_only') AND stato != 'annullata'"
-    ).get();
-    if (navettaSold.cnt >= NAVETTA_MAX) {
-      return res.status(409).json({ error: 'Posti navetta esauriti.' });
     }
   }
 
