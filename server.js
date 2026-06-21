@@ -507,20 +507,23 @@ app.get('/api/admin/stats', authAdmin, (req, res) => {
     SELECT tipo_biglietto,
            COUNT(*) AS prenotazioni,
            SUM(numero_biglietti) AS biglietti_totali
-    FROM reservations WHERE stato != 'annullata'
+    FROM reservations WHERE stato = 'confermata'
     GROUP BY tipo_biglietto ORDER BY tipo_biglietto
   `).all();
   const totals = db.prepare(
-    "SELECT COUNT(*) AS prenotazioni, SUM(numero_biglietti) AS biglietti_totali FROM reservations WHERE stato != 'annullata'"
+    "SELECT COUNT(*) AS prenotazioni, SUM(numero_biglietti) AS biglietti_totali FROM reservations WHERE stato = 'confermata'"
+  ).get();
+  const pending = db.prepare(
+    "SELECT COUNT(*) AS cnt FROM reservations WHERE stato = 'in_attesa'"
   ).get();
   const checkins = db.prepare(
     "SELECT COUNT(*) AS presenti FROM reservations WHERE checked_in = 1"
   ).get();
-  res.json({ byType, totals, presenti: checkins.presenti });
+  res.json({ byType, totals, pending: pending.cnt, presenti: checkins.presenti });
 });
 
 app.get('/api/admin/reservations', authAdmin, (req, res) => {
-  const { tipo, q } = req.query;
+  const { tipo, q, stato } = req.query;
   let sql = `SELECT r.*,
     CASE WHEN r.tipo_biglietto = 'navetta_only' THEN
       (SELECT COUNT(*) FROM reservations s WHERE s.email = r.email AND s.tipo_biglietto IN ('standard','navetta') AND s.stato = 'confermata')
@@ -528,6 +531,7 @@ app.get('/api/admin/reservations', authAdmin, (req, res) => {
     FROM reservations r WHERE 1=1`;
   const params = [];
   if (tipo && tipo !== 'all') { sql += ' AND r.tipo_biglietto = ?'; params.push(tipo); }
+  if (stato && stato !== 'all') { sql += ' AND r.stato = ?'; params.push(stato); }
   if (q) {
     sql += ' AND (r.nome LIKE ? OR r.cognome LIKE ? OR r.email LIKE ?)';
     const like = `%${q}%`;

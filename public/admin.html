@@ -231,6 +231,21 @@
       border-bottom: 1px solid rgba(36,26,37,.07);
       display: flex; align-items: center; justify-content: space-between;
     }
+    .pending-banner {
+      display: flex; align-items: center; gap: .75rem;
+      padding: .75rem 1.5rem;
+      background: rgba(154,114,53,.12);
+      border-bottom: 1px solid rgba(154,114,53,.25);
+      font-size: .85rem; color: var(--gold);
+      font-weight: 600;
+    }
+    .pending-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--gold); color: #1a1020;
+      border-radius: 10px; font-size: .65rem; font-weight: 700;
+      padding: 1px 6px; margin-left: 4px; min-width: 18px;
+    }
+    .tab-pending.active { color: var(--gold) !important; border-color: var(--gold) !important; }
     .table-scroll { overflow-x: auto; }
 
     table { width: 100%; border-collapse: collapse; }
@@ -508,13 +523,13 @@
 
   <main>
     <!-- Stats -->
-    <div class="stats-grid" id="stats-grid" style="grid-template-columns:repeat(4,1fr);">
+    <div class="stats-grid" id="stats-grid" style="grid-template-columns:repeat(5,1fr);">
       <div class="stat-card">
-        <div class="stat-label">Prenotazioni totali</div>
+        <div class="stat-label">✓ Confermate</div>
         <div class="stat-value" id="stat-total">—</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Biglietti Standard</div>
+        <div class="stat-label">Standard</div>
         <div class="stat-value" id="stat-standard">—</div>
         <div class="stat-sub" id="stat-standard-t"></div>
       </div>
@@ -522,6 +537,11 @@
         <div class="stat-label">Con Navetta</div>
         <div class="stat-value" id="stat-navetta">—</div>
         <div class="stat-sub" id="stat-navetta-t"></div>
+      </div>
+      <div class="stat-card" style="border-left:3px solid var(--gold);cursor:pointer;" onclick="setFilter('pending')" title="Vedi da confermare">
+        <div class="stat-label">⏳ Da confermare</div>
+        <div class="stat-value" id="stat-pending" style="color:var(--gold);">—</div>
+        <div class="stat-sub" id="stat-pending-t"></div>
       </div>
       <div class="stat-card" style="border-left:3px solid var(--green);">
         <div class="stat-label">✓ Presenti</div>
@@ -537,6 +557,7 @@
         <button class="tab-btn" data-filter="standard"       onclick="setFilter('standard')">Standard</button>
         <button class="tab-btn" data-filter="navetta"        onclick="setFilter('navetta')">Con Navetta</button>
         <button class="tab-btn" data-filter="navetta_only"   onclick="setFilter('navetta_only')">Solo Navetta</button>
+        <button class="tab-btn tab-pending" data-filter="pending" onclick="setFilter('pending')">⏳ Da confermare <span class="pending-badge" id="pending-badge" style="display:none;"></span></button>
       </div>
       <input type="text" class="search-box" id="search-box" placeholder="Cerca per nome, cognome, email…" oninput="loadReservations()" />
       <button class="refresh-btn" onclick="loadAll()" title="Aggiorna">↺</button>
@@ -544,6 +565,10 @@
 
     <!-- Table -->
     <div class="table-wrap">
+      <div class="pending-banner" id="pending-banner" style="display:none;">
+        <span id="pending-banner-txt"></span>
+        <button class="action-btn confirm" id="confirm-all-btn" onclick="confirmAll()" style="margin-left:auto;">✓ Conferma tutti</button>
+      </div>
       <div class="table-count" id="table-count">Caricamento…</div>
       <div class="table-scroll">
         <table>
@@ -697,6 +722,13 @@ async function loadStats() {
       document.getElementById(`stat-${t}-t`).textContent = v.biglietti_totali ? `${v.biglietti_totali} biglietti` : '';
     });
 
+    const pending = data.pending ?? 0;
+    document.getElementById('stat-pending').textContent   = pending;
+    document.getElementById('stat-pending-t').textContent = pending > 0 ? 'clicca per vedere' : 'tutto ok';
+    const badge = document.getElementById('pending-badge');
+    if (pending > 0) { badge.textContent = pending; badge.style.display = ''; }
+    else { badge.style.display = 'none'; }
+
     const presenti = data.presenti ?? 0;
     const totConf  = data.totals.prenotazioni ?? 0;
     document.getElementById('stat-presenti').textContent   = presenti;
@@ -706,8 +738,22 @@ async function loadStats() {
 
 async function loadReservations() {
   const q = document.getElementById('search-box')?.value.trim() || '';
-  let url = `/api/admin/reservations?key=${encodeURIComponent(adminKey)}&tipo=${currentFilter}`;
+  let url = `/api/admin/reservations?key=${encodeURIComponent(adminKey)}`;
+  if (currentFilter === 'pending') {
+    url += `&tipo=all&stato=in_attesa`;
+  } else {
+    url += `&tipo=${currentFilter}`;
+  }
   if (q) url += `&q=${encodeURIComponent(q)}`;
+
+  // Mostra/nascondi banner pending
+  const banner = document.getElementById('pending-banner');
+  const bannerTxt = document.getElementById('pending-banner-txt');
+  if (currentFilter === 'pending') {
+    banner.style.display = 'flex';
+  } else {
+    banner.style.display = 'none';
+  }
 
   const tbody = document.getElementById('table-body');
   try {
@@ -722,8 +768,16 @@ async function loadReservations() {
 function renderTable(rows) {
   const tbody = document.getElementById('table-body');
   const count = document.getElementById('table-count');
+  const bannerTxt = document.getElementById('pending-banner-txt');
 
-  count.textContent = `${rows.length} prenotazion${rows.length === 1 ? 'e' : 'i'}`;
+  if (currentFilter === 'pending') {
+    count.textContent = `${rows.length} prenotazion${rows.length === 1 ? 'e' : 'i'} in attesa`;
+    if (bannerTxt) bannerTxt.textContent = `⏳ ${rows.length} prenotazion${rows.length === 1 ? 'e' : 'i'} in attesa di conferma`;
+    const confirmAllBtn = document.getElementById('confirm-all-btn');
+    if (confirmAllBtn) confirmAllBtn.style.display = rows.length > 0 ? '' : 'none';
+  } else {
+    count.textContent = `${rows.length} prenotazion${rows.length === 1 ? 'e' : 'i'}`;
+  }
 
   if (!rows.length) {
     tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state">
@@ -852,6 +906,25 @@ function setFilter(type) {
   currentFilter = type;
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === type));
   loadReservations();
+}
+
+// ── CONFIRM ALL PENDING ───────────────────────────────────────────────────────
+async function confirmAll() {
+  const rows = document.querySelectorAll('#table-body tr[id^="row-"]');
+  if (!rows.length) return;
+  if (!confirm(`Confermare tutte le ${rows.length} prenotazioni in attesa?\nVerrà inviata l'email di conferma a ciascun ospite.`)) return;
+  const btn = document.getElementById('confirm-all-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+  let ok = 0, fail = 0;
+  for (const row of rows) {
+    const id = row.id.replace('row-', '');
+    try {
+      const r = await fetch(`/api/admin/confirm/${id}?key=${encodeURIComponent(adminKey)}`, { method: 'POST' });
+      if (r.ok) ok++; else fail++;
+    } catch { fail++; }
+  }
+  showToast(`✓ ${ok} confermate${fail ? ', ' + fail + ' errori' : ''}`, ok > 0 ? 'green' : 'red');
+  loadAll();
 }
 
 // ── ACTIONS ──────────────────────────────────────────────────────────────────
