@@ -617,6 +617,21 @@ body.modal-open { overflow: hidden; }
 }
 .form-note { font-size: 11px; color: var(--ink-faint); line-height: 1.65; margin-top: 20px; }
 
+/* gender picker */
+.gender-picker { display: flex; gap: 12px; }
+.gender-opt {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  gap: 8px; padding: 14px 20px;
+  border: 1px solid var(--hairline-strong); cursor: pointer;
+  font-size: 14px; color: var(--ink-faint);
+  transition: border-color 200ms, color 200ms, background 200ms;
+}
+.gender-opt input[type="radio"] { display: none; }
+.gender-opt:has(input:checked) {
+  border-color: var(--accent); color: var(--accent);
+  background: rgba(176,136,74,0.07);
+}
+
 @media (max-width:900px) { .prenota-grid { grid-template-columns: 1fr; gap: 40px; } }
 @media (max-width:580px) {
   .field-row { grid-template-columns: 1fr; }
@@ -1392,6 +1407,20 @@ body.modal-open { overflow: hidden; }
             <input class="field-input" type="tel" id="telefono" placeholder="+39 333 000 0000" autocomplete="tel" />
           </div>
 
+          <div class="field-group">
+            <label class="field-label">Sesso *</label>
+            <div class="gender-picker">
+              <label class="gender-opt">
+                <input type="radio" name="sesso" id="sesso-m" value="M" required />
+                <span>Uomo</span>
+              </label>
+              <label class="gender-opt">
+                <input type="radio" name="sesso" id="sesso-f" value="F" />
+                <span>Donna</span>
+              </label>
+            </div>
+          </div>
+
           <div class="hairline form-divider"></div>
 
           <div class="field-group">
@@ -1632,6 +1661,7 @@ document.getElementById('reservation-form').addEventListener('submit', async fun
   const txt   = document.getElementById('submit-text');
   errEl.style.display = 'none';
 
+  const sessoEl = document.querySelector('input[name="sesso"]:checked');
   const payload = {
     nome:             document.getElementById('nome').value.trim(),
     cognome:          document.getElementById('cognome').value.trim(),
@@ -1640,10 +1670,16 @@ document.getElementById('reservation-form').addEventListener('submit', async fun
     tipo_biglietto:   document.getElementById('tipo_biglietto').value,
     numero_biglietti: parseInt(document.getElementById('numero_biglietti').value) || 1,
     note:             document.getElementById('note').value.trim(),
+    sesso:            sessoEl ? sessoEl.value : null,
   };
 
   if (!payload.nome || !payload.cognome || !payload.email || !payload.tipo_biglietto) {
     errEl.textContent = 'Compila tutti i campi obbligatori per procedere.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (!payload.sesso) {
+    errEl.textContent = 'Seleziona il sesso per procedere.';
     errEl.style.display = 'block';
     return;
   }

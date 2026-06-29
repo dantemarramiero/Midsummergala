@@ -194,6 +194,8 @@ try { db.exec('ALTER TABLE reservations ADD COLUMN payment_intent_id TEXT'); } c
 try { db.exec('ALTER TABLE reservations ADD COLUMN stripe_payment_status TEXT'); } catch {}
 try { db.exec('ALTER TABLE reservations ADD COLUMN checked_in INTEGER DEFAULT 0'); } catch {}
 try { db.exec('ALTER TABLE reservations ADD COLUMN checked_in_at TEXT'); } catch {}
+try { db.exec('ALTER TABLE reservations ADD COLUMN sesso TEXT'); } catch {}
+try { db.exec('ALTER TABLE reservations ADD COLUMN omaggio INTEGER DEFAULT 0'); } catch {}
 
 // ── Settings (chiave-valore persistente) ──────────────────────────────────────
 db.exec(`CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT)`);
@@ -277,7 +279,7 @@ const PRICES_LABELS = { standard: 'Biglietto Standard', navetta: 'Biglietto con 
 app.post('/api/create-checkout-session', async (req, res) => {
   if (!stripe) return res.status(500).json({ error: 'Pagamenti non configurati.' });
 
-  const { nome, cognome, email, telefono, tipo_biglietto, numero_biglietti, note } = req.body || {};
+  const { nome, cognome, email, telefono, tipo_biglietto, numero_biglietti, note, sesso } = req.body || {};
 
   if (!nome?.trim() || !cognome?.trim() || !email?.trim() || !tipo_biglietto) {
     return res.status(400).json({ error: 'Nome, cognome, email e tipo biglietto sono obbligatori.' });
@@ -308,10 +310,11 @@ app.post('/api/create-checkout-session', async (req, res) => {
   }
 
   // Create pending reservation
+  const sessoVal = ['M', 'F'].includes(sesso) ? sesso : null;
   const result = db.prepare(`
-    INSERT INTO reservations (nome, cognome, email, telefono, tipo_biglietto, numero_biglietti, note, stato)
-    VALUES (?, ?, ?, ?, ?, ?, ?, 'in_attesa')
-  `).run(nome.trim(), cognome.trim(), emailClean, telefono?.trim() || null, tipo_biglietto, qty, note?.trim() || null);
+    INSERT INTO reservations (nome, cognome, email, telefono, tipo_biglietto, numero_biglietti, note, sesso, stato)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'in_attesa')
+  `).run(nome.trim(), cognome.trim(), emailClean, telefono?.trim() || null, tipo_biglietto, qty, note?.trim() || null, sessoVal);
 
   const reservationId = result.lastInsertRowid;
   const origin = `${req.protocol}://${req.get('host')}`;
@@ -442,7 +445,7 @@ app.post('/api/admin/reject/:id', authAdmin, async (req, res) => {
 
 // ── Admin: Inserimento manuale ────────────────────────────────────────────────
 app.post('/api/admin/reservations/manual', authAdmin, async (req, res) => {
-  const { nome, cognome, email, telefono, tipo_biglietto, stato, note, send_email } = req.body || {};
+  const { nome, cognome, email, telefono, tipo_biglietto, stato, note, sesso, send_email } = req.body || {};
   if (!nome?.trim() || !cognome?.trim() || !email?.trim()) {
     return res.status(400).json({ error: 'Nome, cognome e email sono obbligatori.' });
   }
@@ -450,11 +453,12 @@ app.post('/api/admin/reservations/manual', authAdmin, async (req, res) => {
     return res.status(400).json({ error: 'Tipo biglietto non valido.' });
   }
   const statoVal = ['confermata', 'in_attesa'].includes(stato) ? stato : 'confermata';
+  const sessoVal = ['M', 'F'].includes(sesso) ? sesso : null;
   const result = db.prepare(`
-    INSERT INTO reservations (nome, cognome, email, telefono, tipo_biglietto, numero_biglietti, note, stato)
-    VALUES (?, ?, ?, ?, ?, 1, ?, ?)
+    INSERT INTO reservations (nome, cognome, email, telefono, tipo_biglietto, numero_biglietti, note, sesso, omaggio, stato)
+    VALUES (?, ?, ?, ?, ?, 1, ?, ?, 1, ?)
   `).run(nome.trim(), cognome.trim(), email.toLowerCase().trim(),
-         telefono?.trim() || null, tipo_biglietto, note?.trim() || null, statoVal);
+         telefono?.trim() || null, tipo_biglietto, note?.trim() || null, sessoVal, statoVal);
 
   const reservation = db.prepare('SELECT * FROM reservations WHERE id = ?').get(result.lastInsertRowid);
 
@@ -516,10 +520,13 @@ app.get('/api/admin/stats', authAdmin, (req, res) => {
   const pending = db.prepare(
     "SELECT COUNT(*) AS cnt FROM reservations WHERE stato = 'in_attesa'"
   ).get();
+  const omaggi = db.prepare(
+    "SELECT COUNT(*) AS cnt FROM reservations WHERE omaggio = 1 AND stato != 'annullata'"
+  ).get();
   const checkins = db.prepare(
     "SELECT COUNT(*) AS presenti FROM reservations WHERE checked_in = 1"
   ).get();
-  res.json({ byType, totals, pending: pending.cnt, presenti: checkins.presenti });
+  res.json({ byType, totals, pending: pending.cnt, omaggi: omaggi.cnt, presenti: checkins.presenti });
 });
 
 app.get('/api/admin/reservations', authAdmin, (req, res) => {
@@ -532,6 +539,7 @@ app.get('/api/admin/reservations', authAdmin, (req, res) => {
   const params = [];
   if (tipo && tipo !== 'all') { sql += ' AND r.tipo_biglietto = ?'; params.push(tipo); }
   if (stato && stato !== 'all') { sql += ' AND r.stato = ?'; params.push(stato); }
+  if (req.query.omaggio === '1') { sql += ' AND r.omaggio = 1'; }
   if (q) {
     sql += ' AND (r.nome LIKE ? OR r.cognome LIKE ? OR r.email LIKE ?)';
     const like = `%${q}%`;
@@ -542,11 +550,28 @@ app.get('/api/admin/reservations', authAdmin, (req, res) => {
 });
 
 app.patch('/api/admin/reservations/:id', authAdmin, (req, res) => {
-  const { stato } = req.body || {};
-  if (!['confermata', 'in_attesa', 'annullata'].includes(stato)) {
-    return res.status(400).json({ error: 'Stato non valido.' });
+  const { stato, nome, cognome, email, telefono, tipo_biglietto, note, sesso, omaggio } = req.body || {};
+  const updates = [];
+  const params  = [];
+
+  if (nome      !== undefined) { updates.push('nome = ?');           params.push(nome.trim()); }
+  if (cognome   !== undefined) { updates.push('cognome = ?');        params.push(cognome.trim()); }
+  if (email     !== undefined) { updates.push('email = ?');          params.push(email.toLowerCase().trim()); }
+  if (telefono  !== undefined) { updates.push('telefono = ?');       params.push(telefono?.trim() || null); }
+  if (tipo_biglietto !== undefined && ['standard','navetta','navetta_only'].includes(tipo_biglietto)) {
+    updates.push('tipo_biglietto = ?'); params.push(tipo_biglietto);
   }
-  db.prepare('UPDATE reservations SET stato = ? WHERE id = ?').run(stato, req.params.id);
+  if (note     !== undefined) { updates.push('note = ?');            params.push(note?.trim() || null); }
+  if (sesso    !== undefined) { updates.push('sesso = ?');           params.push(['M','F'].includes(sesso) ? sesso : null); }
+  if (omaggio  !== undefined) { updates.push('omaggio = ?');         params.push(omaggio ? 1 : 0); }
+  if (stato    !== undefined) {
+    if (!['confermata','in_attesa','annullata'].includes(stato)) return res.status(400).json({ error: 'Stato non valido.' });
+    updates.push('stato = ?'); params.push(stato);
+  }
+
+  if (!updates.length) return res.status(400).json({ error: 'Nessun campo da aggiornare.' });
+  params.push(req.params.id);
+  db.prepare(`UPDATE reservations SET ${updates.join(', ')} WHERE id = ?`).run(...params);
   res.json({ success: true });
 });
 
@@ -560,19 +585,36 @@ app.get('/api/admin/export', authAdmin, (req, res) => {
   let sql = 'SELECT * FROM reservations';
   const params = [];
   if (tipo && tipo !== 'all') { sql += ' WHERE tipo_biglietto = ?'; params.push(tipo); }
-  sql += ' ORDER BY tipo_biglietto, cognome, nome';
+  sql += ' ORDER BY sesso, cognome, nome';
   const rows = db.prepare(sql).all(...params);
-  const headers = ['ID', 'Nome', 'Cognome', 'Email', 'Telefono', 'Tipo', 'Biglietti', 'Note', 'Stato', 'Data'];
+
+  const confermati = rows.filter(r => r.stato === 'confermata');
+  const maschi   = confermati.filter(r => r.sesso === 'M').length;
+  const femmine  = confermati.filter(r => r.sesso === 'F').length;
+  const nd       = confermati.filter(r => !r.sesso).length;
+  const totConf  = confermati.length;
+
+  const summary = [
+    `RIEPILOGO PARTECIPANTI CONFERMATI`,
+    `Totale;${totConf}`,
+    `Maschi (M);${maschi}`,
+    `Femmine (F);${femmine}`,
+    nd ? `Non specificato;${nd}` : null,
+    ``,
+  ].filter(l => l !== null).join('\n');
+
+  const headers = ['ID', 'Sesso', 'Nome', 'Cognome', 'Email', 'Telefono', 'Tipo', 'Omaggio', 'Note', 'Stato', 'Data'];
   const csv = [
+    summary,
     headers.join(';'),
     ...rows.map(r => [
-      r.id, `"${r.nome}"`, `"${r.cognome}"`, `"${r.email}"`,
-      `"${r.telefono || ''}"`, r.tipo_biglietto, r.numero_biglietti,
+      r.id, r.sesso || '—', `"${r.nome}"`, `"${r.cognome}"`, `"${r.email}"`,
+      `"${r.telefono || ''}"`, r.tipo_biglietto, r.omaggio ? 'Sì' : '',
       `"${(r.note || '').replace(/"/g, '""')}"`, r.stato, r.created_at
     ].join(';'))
   ].join('\n');
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-  res.setHeader('Content-Disposition', `attachment; filename="prenotazioni-${tipo || 'tutte'}-${Date.now()}.csv"`);
+  res.setHeader('Content-Disposition', `attachment; filename="partecipanti-${tipo || 'tutti'}.csv"`);
   res.send('﻿' + csv);
 });
 

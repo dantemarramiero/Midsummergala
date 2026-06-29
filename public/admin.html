@@ -246,6 +246,13 @@
       padding: 1px 6px; margin-left: 4px; min-width: 18px;
     }
     .tab-pending.active { color: var(--gold) !important; border-color: var(--gold) !important; }
+    .badge-omaggio {
+      display: inline-block; font-size: .65rem; font-weight: 700;
+      padding: 2px 6px; border-radius: 4px;
+      background: rgba(155,89,182,.15); color: #9b59b6;
+      border: 1px solid rgba(155,89,182,.3); margin-left: 4px;
+    }
+    .action-btn.edit { background: rgba(52,152,219,.1); color: #3498db; border-color: rgba(52,152,219,.3); }
     .table-scroll { overflow-x: auto; }
 
     table { width: 100%; border-collapse: collapse; }
@@ -436,8 +443,8 @@
         white-space: nowrap;
       }
 
-      /* Stats: 2x2 su mobile */
-      .stats-grid { grid-template-columns: 1fr 1fr !important; gap: .6rem; }
+      /* Stats: 3x2 su mobile */
+      .stats-grid { grid-template-columns: 1fr 1fr 1fr !important; gap: .6rem; }
       .stat-card { padding: .9rem 1rem; }
       .stat-value { font-size: 1.8rem; }
       .stat-sub { font-size: .7rem; }
@@ -523,10 +530,15 @@
 
   <main>
     <!-- Stats -->
-    <div class="stats-grid" id="stats-grid" style="grid-template-columns:repeat(5,1fr);">
+    <div class="stats-grid" id="stats-grid" style="grid-template-columns:repeat(6,1fr);">
       <div class="stat-card">
         <div class="stat-label">✓ Confermate</div>
         <div class="stat-value" id="stat-total">—</div>
+      </div>
+      <div class="stat-card" style="border-left:3px solid #9b59b6;cursor:pointer;" onclick="setFilter('omaggio')" title="Vedi omaggi">
+        <div class="stat-label">🎁 Omaggi</div>
+        <div class="stat-value" id="stat-omaggi" style="color:#9b59b6;">—</div>
+        <div class="stat-sub" id="stat-omaggi-t"></div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Standard</div>
@@ -558,6 +570,7 @@
         <button class="tab-btn" data-filter="navetta"        onclick="setFilter('navetta')">Con Navetta</button>
         <button class="tab-btn" data-filter="navetta_only"   onclick="setFilter('navetta_only')">Solo Navetta</button>
         <button class="tab-btn tab-pending" data-filter="pending" onclick="setFilter('pending')">⏳ Da confermare <span class="pending-badge" id="pending-badge" style="display:none;"></span></button>
+        <button class="tab-btn" data-filter="omaggio" onclick="setFilter('omaggio')" style="color:#9b59b6;">🎁 Omaggi</button>
       </div>
       <input type="text" class="search-box" id="search-box" placeholder="Cerca per nome, cognome, email…" oninput="loadReservations()" />
       <button class="refresh-btn" onclick="loadAll()" title="Aggiorna">↺</button>
@@ -577,6 +590,7 @@
               <th>#</th>
               <th>Nome</th>
               <th>Email</th>
+              <th>Sesso</th>
               <th>Telefono</th>
               <th>Tipo</th>
               <th>Pagamento</th>
@@ -618,6 +632,14 @@
         <label class="modal-label">Telefono</label>
         <input class="modal-input" id="m-telefono" placeholder="+39 333 000 0000" />
       </div>
+      <div>
+        <label class="modal-label">Sesso</label>
+        <select class="modal-select" id="m-sesso">
+          <option value="">— non specificato</option>
+          <option value="M">Uomo (M)</option>
+          <option value="F">Donna (F)</option>
+        </select>
+      </div>
       <div class="full">
         <label class="modal-label">Tipologia biglietto *</label>
         <select class="modal-select" id="m-tipo">
@@ -650,9 +672,73 @@
   </div>
 </div>
 
+<!-- Edit modal -->
+<div class="modal-overlay" id="edit-modal" onclick="if(event.target===this) closeEditModal()">
+  <div class="modal-box">
+    <div class="modal-title">Modifica Prenotazione <span id="edit-modal-ref" style="color:var(--muted);font-size:.85rem;"></span></div>
+    <div class="modal-grid">
+      <div>
+        <label class="modal-label">Nome *</label>
+        <input class="modal-input" id="e-nome" />
+      </div>
+      <div>
+        <label class="modal-label">Cognome *</label>
+        <input class="modal-input" id="e-cognome" />
+      </div>
+      <div class="full">
+        <label class="modal-label">Email *</label>
+        <input class="modal-input" id="e-email" type="email" />
+      </div>
+      <div>
+        <label class="modal-label">Telefono</label>
+        <input class="modal-input" id="e-telefono" />
+      </div>
+      <div>
+        <label class="modal-label">Sesso</label>
+        <select class="modal-select" id="e-sesso">
+          <option value="">— non specificato</option>
+          <option value="M">Uomo (M)</option>
+          <option value="F">Donna (F)</option>
+        </select>
+      </div>
+      <div>
+        <label class="modal-label">Tipologia biglietto</label>
+        <select class="modal-select" id="e-tipo">
+          <option value="standard">Standard — € 50</option>
+          <option value="navetta">Con Navetta — € 65</option>
+          <option value="navetta_only">Solo Navetta — € 15</option>
+        </select>
+      </div>
+      <div>
+        <label class="modal-label">Stato</label>
+        <select class="modal-select" id="e-stato">
+          <option value="confermata">✓ Confermata</option>
+          <option value="in_attesa">⏳ In attesa</option>
+          <option value="annullata">✕ Annullata</option>
+        </select>
+      </div>
+      <div class="full">
+        <label class="modal-label">Note</label>
+        <input class="modal-input" id="e-note" placeholder="Allergie, richieste speciali…" />
+      </div>
+      <div class="full">
+        <label class="modal-label" style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
+          <input type="checkbox" id="e-omaggio" style="accent-color:#9b59b6;" />
+          🎁 Biglietto omaggio (inserimento manuale)
+        </label>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn secondary" onclick="closeEditModal()">Annulla</button>
+      <button class="modal-btn primary" onclick="submitEdit()">Salva modifiche</button>
+    </div>
+  </div>
+</div>
+
 <script>
 let adminKey = '';
 let currentFilter = 'all';
+let _editId = null;
 
 // ── LOGIN ────────────────────────────────────────────────────────────────────
 // Auto-login: controlla URL, poi localStorage
@@ -729,6 +815,10 @@ async function loadStats() {
     document.getElementById('stat-navetta').textContent   = navTot;
     document.getElementById('stat-navetta-t').textContent = navBig ? `${navBig} biglietti` : '';
 
+    const omaggi = data.omaggi ?? 0;
+    document.getElementById('stat-omaggi').textContent   = omaggi;
+    document.getElementById('stat-omaggi-t').textContent = omaggi > 0 ? 'inseriti manualmente' : '';
+
     const pending = data.pending ?? 0;
     document.getElementById('stat-pending').textContent   = pending;
     document.getElementById('stat-pending-t').textContent = pending > 0 ? 'clicca per vedere' : 'tutto ok';
@@ -748,6 +838,8 @@ async function loadReservations() {
   let url = `/api/admin/reservations?key=${encodeURIComponent(adminKey)}`;
   if (currentFilter === 'pending') {
     url += `&tipo=all&stato=in_attesa`;
+  } else if (currentFilter === 'omaggio') {
+    url += `&tipo=all&omaggio=1`;
   } else {
     url += `&tipo=${currentFilter}`;
   }
@@ -805,6 +897,7 @@ function renderTable(rows) {
         badge += `<span class="evento-badge evento-warn">⚠ senza evento</span>`;
       }
     }
+    if (r.omaggio) badge += `<span class="badge-omaggio">🎁 omaggio</span>`;
     return badge;
   };
 
@@ -855,7 +948,8 @@ function renderTable(rows) {
     const rejectBtn = `<button class="action-btn reject" onclick="rejectRes(${r.id})" title="Rifiuta e rimborsa">✕ Rifiuta</button>`;
     const emailBtn  = `<button class="action-btn email" onclick="resendEmail(${r.id})" title="Reinvia email di conferma">✉</button>`;
     const delBtn    = `<button class="action-btn del" onclick="deleteRow(${r.id})" title="Elimina">🗑</button>`;
-    return checkinBtn + confirmBtn + forceBtn + rejectBtn + emailBtn + delBtn;
+    const editBtn = `<button class="action-btn edit" onclick="openEditModal(${r.id})" title="Modifica prenotazione">✎ Modifica</button>`;
+    return checkinBtn + confirmBtn + forceBtn + rejectBtn + emailBtn + editBtn + delBtn;
   };
 
   tbody.innerHTML = rows.map(r => `
@@ -863,6 +957,7 @@ function renderTable(rows) {
       <td class="td-id">#${String(r.id).padStart(4,'0')}</td>
       <td class="td-name">${esc(r.nome)} ${esc(r.cognome)}</td>
       <td class="td-email">${esc(r.email)}</td>
+      <td style="text-align:center;font-size:.8rem;">${r.sesso || '—'}</td>
       <td class="td-phone">${esc(r.telefono || '—')}</td>
       <td>${typeBadge(r.tipo_biglietto, r)}</td>
       <td>${payBadge(r)}</td>
@@ -913,6 +1008,70 @@ function setFilter(type) {
   currentFilter = type;
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === type));
   loadReservations();
+}
+
+// ── EDIT RESERVATION ─────────────────────────────────────────────────────────
+function openEditModal(id) {
+  const row = document.getElementById(`row-${id}`);
+  // Fetch fresh data from the already-loaded reservation list
+  fetch(`/api/admin/reservations?key=${encodeURIComponent(adminKey)}&q=${id}`)
+    .then(r => r.json())
+    .then(rows => {
+      const r = rows.find(x => x.id === id);
+      if (!r) return showToast('Prenotazione non trovata', 'red');
+      _editId = id;
+      document.getElementById('edit-modal-ref').textContent = `#${String(id).padStart(4,'0')}`;
+      document.getElementById('e-nome').value     = r.nome || '';
+      document.getElementById('e-cognome').value  = r.cognome || '';
+      document.getElementById('e-email').value    = r.email || '';
+      document.getElementById('e-telefono').value = r.telefono || '';
+      document.getElementById('e-sesso').value    = r.sesso || '';
+      document.getElementById('e-tipo').value     = r.tipo_biglietto || 'standard';
+      document.getElementById('e-stato').value    = r.stato || 'confermata';
+      document.getElementById('e-note').value     = r.note || '';
+      document.getElementById('e-omaggio').checked = !!r.omaggio;
+      document.getElementById('edit-modal').classList.add('open');
+    })
+    .catch(() => showToast('Errore nel caricamento', 'red'));
+}
+
+function closeEditModal() {
+  document.getElementById('edit-modal').classList.remove('open');
+  _editId = null;
+}
+
+async function submitEdit() {
+  if (!_editId) return;
+  const nome     = document.getElementById('e-nome').value.trim();
+  const cognome  = document.getElementById('e-cognome').value.trim();
+  const email    = document.getElementById('e-email').value.trim();
+  if (!nome || !cognome || !email) {
+    showToast('✗ Nome, cognome e email sono obbligatori.', 'red'); return;
+  }
+  const btn = document.querySelector('#edit-modal .modal-btn.primary');
+  btn.disabled = true; btn.textContent = 'Salvataggio…';
+  const res = await fetch(`/api/admin/reservations/${_editId}?key=${encodeURIComponent(adminKey)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      nome, cognome, email,
+      telefono:      document.getElementById('e-telefono').value.trim(),
+      sesso:         document.getElementById('e-sesso').value || null,
+      tipo_biglietto: document.getElementById('e-tipo').value,
+      stato:         document.getElementById('e-stato').value,
+      note:          document.getElementById('e-note').value.trim(),
+      omaggio:       document.getElementById('e-omaggio').checked,
+    })
+  });
+  btn.disabled = false; btn.textContent = 'Salva modifiche';
+  if (res.ok) {
+    closeEditModal();
+    showToast('✓ Prenotazione aggiornata!', 'green');
+    loadAll();
+  } else {
+    const d = await res.json();
+    showToast('✗ ' + d.error, 'red');
+  }
 }
 
 // ── CONFIRM ALL PENDING ───────────────────────────────────────────────────────
@@ -1047,6 +1206,7 @@ function openNewModal() {
   document.getElementById('m-cognome').value = '';
   document.getElementById('m-email').value = '';
   document.getElementById('m-telefono').value = '';
+  document.getElementById('m-sesso').value = '';
   document.getElementById('m-tipo').value = 'standard';
   document.getElementById('m-stato').value = 'confermata';
   document.getElementById('m-note').value = '';
@@ -1107,6 +1267,7 @@ async function submitNewReservation() {
   const cognome  = document.getElementById('m-cognome').value.trim();
   const email    = document.getElementById('m-email').value.trim();
   const telefono = document.getElementById('m-telefono').value.trim();
+  const sesso    = document.getElementById('m-sesso').value;
   const tipo     = document.getElementById('m-tipo').value;
   const stato    = document.getElementById('m-stato').value;
   const note     = document.getElementById('m-note').value.trim();
@@ -1122,7 +1283,7 @@ async function submitNewReservation() {
   const res = await fetch(`/api/admin/reservations/manual?key=${encodeURIComponent(adminKey)}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ nome, cognome, email, telefono, tipo_biglietto: tipo, stato, note, send_email: sendEmail })
+    body: JSON.stringify({ nome, cognome, email, telefono, tipo_biglietto: tipo, stato, note, sesso: sesso || null, send_email: sendEmail })
   });
   const data = await res.json();
 
