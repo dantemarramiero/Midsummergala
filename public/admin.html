@@ -46,7 +46,7 @@
       border: 1px solid rgba(154,114,53,.25);
       border-radius: 20px;
       padding: 3rem 2.5rem;
-      width: 360px; text-align: center;
+      width: min(360px, 92vw); text-align: center;
       box-shadow: 0 4px 24px rgba(36,26,37,.08);
     }
     .login-card h1 {
@@ -420,47 +420,53 @@
     @media (max-width: 768px) {
       body { overflow-x: hidden; }
 
-      /* Header: logo centrato + azioni su riga separata */
+      /* Header */
       header {
         flex-direction: column; align-items: center;
         gap: .6rem; padding: .9rem 1.2rem;
       }
-      .header-logo {
-        font-size: 1rem; text-align: center; width: 100%;
-      }
+      .header-logo { font-size: 1rem; text-align: center; width: 100%; }
       .header-logo span { display: block; margin-top: 2px; }
       .header-actions {
-        display: flex; width: 100%; gap: .5rem; align-items: center;
+        display: flex; flex-wrap: wrap; width: 100%;
+        gap: .45rem; align-items: center; justify-content: center;
       }
-      .header-actions .btn-export-csv { display: none; }
-      /* Nuova prenotazione occupa tutto lo spazio disponibile */
       .header-actions .export-btn {
-        flex: 1; font-size: .72rem; padding: .55rem .8rem;
-        letter-spacing: .08em; text-align: center;
+        flex: 1; min-width: 120px; font-size: .72rem;
+        padding: .55rem .8rem; letter-spacing: .08em; text-align: center;
       }
       .header-actions .action-btn {
         flex-shrink: 0; font-size: .72rem; padding: .55rem .85rem;
         white-space: nowrap;
       }
 
-      /* Stats: 3x2 su mobile */
-      .stats-grid { grid-template-columns: 1fr 1fr 1fr !important; gap: .6rem; }
+      /* Stats: 3 colonne su tablet */
+      .stats-grid { grid-template-columns: repeat(3, 1fr) !important; gap: .6rem; }
       .stat-card { padding: .9rem 1rem; }
       .stat-value { font-size: 1.8rem; }
       .stat-sub { font-size: .7rem; }
 
-      /* Main con margini laterali */
+      /* Main */
       main { padding: 1rem 1.2rem; }
 
-      /* Toolbar: filtri + cerca su righe separate */
+      /* Toolbar */
       .toolbar { flex-direction: column; gap: .6rem; align-items: stretch; }
-      .filter-tabs { justify-content: space-between; width: 100%; }
-      .tab-btn { flex: 1; text-align: center; padding: .4rem .5rem; font-size: .7rem; }
+      .filter-tabs {
+        overflow-x: auto; flex-wrap: nowrap;
+        justify-content: flex-start; gap: .35rem;
+        padding-bottom: .3rem; width: 100%;
+        scrollbar-width: none;
+      }
+      .filter-tabs::-webkit-scrollbar { display: none; }
+      .tab-btn {
+        flex: 0 0 auto; white-space: nowrap;
+        padding: .45rem .75rem; font-size: .72rem;
+      }
       .search-box {
         width: 100%; min-width: 0; font-size: .9rem;
         padding: .65rem 1rem; display: block;
       }
-      .refresh-btn { display: none; } /* nascosto su mobile, si aggiorna da solo */
+      .refresh-btn { display: none; }
 
       /* Nascondi tabella, mostra cards */
       .table-scroll { display: none; }
@@ -468,7 +474,52 @@
 
       /* Table count */
       .table-count { padding: .7rem 0; font-size: .78rem; }
+
+      /* Modal */
+      .modal-box { width: 96vw; max-width: 96vw; padding: 1.5rem 1.25rem; }
+      .modal-grid { grid-template-columns: 1fr 1fr; gap: .7rem; }
+      .modal-actions { gap: .5rem; }
+
+      /* Pending banner */
+      .pending-banner { flex-direction: column; align-items: flex-start; gap: .5rem; }
+      #confirm-all-btn { margin-left: 0 !important; width: 100%; text-align: center; }
     }
+
+    /* ── 480px: telefoni portrait ── */
+    @media (max-width: 480px) {
+      /* Header: bottoni su 2 righe ordinate */
+      .header-actions { gap: .4rem; }
+      .header-actions .export-btn { font-size: .68rem; padding: .5rem .65rem; }
+      .header-actions .action-btn { font-size: .68rem; padding: .5rem .7rem; }
+      .header-actions .navetta-toggle { font-size: .68rem; padding: .4rem .65rem; }
+      .header-actions .btn-export-csv { display: none; }
+
+      /* Stats: 2 colonne */
+      .stats-grid { grid-template-columns: 1fr 1fr !important; gap: .45rem; }
+      .stat-card { padding: .7rem .8rem; }
+      .stat-value { font-size: 1.5rem; }
+      .stat-sub { font-size: .65rem; }
+
+      /* Modal: colonna singola */
+      .modal-box { padding: 1.25rem 1rem; border-radius: 12px; }
+      .modal-title { font-size: 1.15rem; margin-bottom: .9rem; }
+      .modal-grid { grid-template-columns: 1fr !important; gap: .6rem; }
+      .modal-grid .full { grid-column: 1 !important; }
+      .modal-actions { flex-direction: column-reverse; gap: .45rem; }
+      .modal-btn { width: 100%; text-align: center; padding: .7rem 1rem; }
+
+      /* Login */
+      .login-card { padding: 2rem 1.25rem; }
+
+      /* Mobile cards: bottoni più grandi */
+      .res-card-actions { gap: .4rem; }
+      .action-btn { padding: .5rem .85rem; font-size: .75rem; min-height: 36px; }
+
+      /* Toolbar */
+      main { padding: .75rem .9rem; }
+      .tab-btn { padding: .4rem .65rem; font-size: .68rem; }
+    }
+
     @media (min-width: 769px) {
       .cards-list { display: none; }
     }
