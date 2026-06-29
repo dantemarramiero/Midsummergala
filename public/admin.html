@@ -790,6 +790,7 @@
 let adminKey = '';
 let currentFilter = 'all';
 let _editId = null;
+let _reservations = [];
 
 // ── LOGIN ────────────────────────────────────────────────────────────────────
 // Auto-login: controlla URL, poi localStorage
@@ -916,6 +917,7 @@ async function loadReservations() {
 }
 
 function renderTable(rows) {
+  _reservations = rows;
   const tbody = document.getElementById('table-body');
   const count = document.getElementById('table-count');
   const bannerTxt = document.getElementById('pending-banner-txt');
@@ -1063,27 +1065,20 @@ function setFilter(type) {
 
 // ── EDIT RESERVATION ─────────────────────────────────────────────────────────
 function openEditModal(id) {
-  const row = document.getElementById(`row-${id}`);
-  // Fetch fresh data from the already-loaded reservation list
-  fetch(`/api/admin/reservations?key=${encodeURIComponent(adminKey)}&q=${id}`)
-    .then(r => r.json())
-    .then(rows => {
-      const r = rows.find(x => x.id === id);
-      if (!r) return showToast('Prenotazione non trovata', 'red');
-      _editId = id;
-      document.getElementById('edit-modal-ref').textContent = `#${String(id).padStart(4,'0')}`;
-      document.getElementById('e-nome').value     = r.nome || '';
-      document.getElementById('e-cognome').value  = r.cognome || '';
-      document.getElementById('e-email').value    = r.email || '';
-      document.getElementById('e-telefono').value = r.telefono || '';
-      document.getElementById('e-sesso').value    = r.sesso || '';
-      document.getElementById('e-tipo').value     = r.tipo_biglietto || 'standard';
-      document.getElementById('e-stato').value    = r.stato || 'confermata';
-      document.getElementById('e-note').value     = r.note || '';
-      document.getElementById('e-omaggio').checked = !!r.omaggio;
-      document.getElementById('edit-modal').classList.add('open');
-    })
-    .catch(() => showToast('Errore nel caricamento', 'red'));
+  const r = _reservations.find(x => x.id === id);
+  if (!r) return showToast('Ricarica la lista e riprova', 'red');
+  _editId = id;
+  document.getElementById('edit-modal-ref').textContent = `#${String(id).padStart(4,'0')}`;
+  document.getElementById('e-nome').value      = r.nome || '';
+  document.getElementById('e-cognome').value   = r.cognome || '';
+  document.getElementById('e-email').value     = r.email || '';
+  document.getElementById('e-telefono').value  = r.telefono || '';
+  document.getElementById('e-sesso').value     = r.sesso || '';
+  document.getElementById('e-tipo').value      = r.tipo_biglietto || 'standard';
+  document.getElementById('e-stato').value     = r.stato || 'confermata';
+  document.getElementById('e-note').value      = r.note || '';
+  document.getElementById('e-omaggio').checked = !!r.omaggio;
+  document.getElementById('edit-modal').classList.add('open');
 }
 
 function closeEditModal() {
